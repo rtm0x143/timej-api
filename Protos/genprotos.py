@@ -1,11 +1,12 @@
-﻿from pathlib import Path 
+﻿from pathlib import Path
+from argparse import ArgumentParser
 import os
-import sys
 import shutil
+
 
 def gen(input_path, output_path):
     output_path = Path(output_path).resolve()
-    if not os.path.exists(output_path):
+    if not output_path.exists():
         os.makedirs(output_path)
 
     os.chdir(input_path)
@@ -19,31 +20,27 @@ def gen(input_path, output_path):
     for subdir, dirs, files in os.walk("."):
         for file in files:
             if os.path.splitext(file)[1] == ".proto":
-                print(f"buf generate --path {os.path.join(subdir, file)} -o {os.path.join(output_path, subdir)}")
-                os.system(f"buf generate --path {os.path.join(subdir, file)} -o {os.path.join(output_path, subdir)}")
+                print(
+                    f"buf generate --path {os.path.join(subdir, file)} -o {os.path.join(output_path, subdir)}")
+                os.system(
+                    f"buf generate --path {os.path.join(subdir, file)} -o {os.path.join(output_path, subdir)}")
 
 
 if __name__ == "__main__":
-    if len(sys.argv) == 1:
-        buf_registry_name = "buf.build/pujak/timej"
-        output_proto_path = "."
-        gen_output_path = "../obj/genprotos"
-    elif len(sys.argv) != 4:
-        print(
-"""
-Usage: genprotos.py [ buf_registry_name output_proto_path gen_output_path ]
+    parser = ArgumentParser(description="""    
     empty call equivalent to : genprotos.py buf.build/pujak/timej . ../obj/genprotos
-""")
-        exit(1)
-    else:
-        buf_registry_name = sys.argv[1]
-        output_proto_path = sys.argv[2]
-        gen_output_path = sys.argv[3]
-
-    if os.path.exists(gen_output_path):
+                            """)
+    parser.add_argument(
+        'buf_registry_name', help='enter the filename of the image to process', type=str, default='buf.build/pujak/timej', nargs='?')
+    parser.add_argument(
+        'output_proto_path', help='path of output proto', type=str, default='.', nargs='?')
+    parser.add_argument(
+        'gen_output_path', help='generated path for output', type=str, default='../obj/genprotos', nargs='?')
+    args = parser.parse_args()
+    
+    if Path(args.gen_output_path).exists():
         shutil.rmtree(gen_output_path)
-
-    path = f"buf export {buf_registry_name} -o {output_proto_path}"
+    path = f"buf export {args.buf_registry_name} -o {args.output_proto_path}"
     print(path)
     os.system(path)
-    gen(output_proto_path, gen_output_path)
+    gen(args.output_proto_path, args.gen_output_path)
