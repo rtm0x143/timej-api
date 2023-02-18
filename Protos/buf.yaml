@@ -1,0 +1,8 @@
+version: v1
+name: buf.build/pujak/timej
+lint:
+  use:
+    - BASIC
+breaking:
+  use:
+    - FILE

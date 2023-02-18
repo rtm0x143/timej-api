@@ -1,6 +1,7 @@
 ﻿from pathlib import Path 
 import os
 import sys
+import shutil
 
 def gen(input_path, output_path):
     output_path = Path(output_path).resolve()
@@ -21,6 +22,7 @@ def gen(input_path, output_path):
                 print(f"buf generate --path {os.path.join(subdir, file)} -o {os.path.join(output_path, subdir)}")
                 os.system(f"buf generate --path {os.path.join(subdir, file)} -o {os.path.join(output_path, subdir)}")
 
+
 if __name__ == "__main__":
     if len(sys.argv) == 1:
         buf_registry_name = "buf.build/pujak/timej"
@@ -37,6 +39,9 @@ Usage: genprotos.py [ buf_registry_name output_proto_path gen_output_path ]
         buf_registry_name = sys.argv[1]
         output_proto_path = sys.argv[2]
         gen_output_path = sys.argv[3]
+
+    if os.path.exists(gen_output_path):
+        shutil.rmtree(gen_output_path)
 
     path = f"buf export {buf_registry_name} -o {output_proto_path}"
     print(path)
