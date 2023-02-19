@@ -39,7 +39,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
     
     if Path(args.gen_output_path).exists():
-        shutil.rmtree(gen_output_path)
+        shutil.rmtree(args.gen_output_path)
+
     path = f"buf export {args.buf_registry_name} -o {args.output_proto_path}"
     print(path)
     os.system(path)
