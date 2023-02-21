@@ -12,9 +12,20 @@ include:
 
 workflow:
   rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: always
+
+    - if: $CI_COMMIT_BRANCH == dev
+      when: always
+
+    - if: $CI_COMMIT_BRANCH =~ /feature/ && $CI_COMMIT_MESSAGE =~ /CI/
+      when: always
+
     - if: $CI_COMMIT_MESSAGE =~ /skip-ci/
       when: never
-    - when: always
+
+    - when: never
+
 
 stages:
   - operation
