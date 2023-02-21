@@ -1,0 +1,22 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: timej-api
+  labels:
+    app: timej-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: timej-api
+  template:
+    metadata:
+      labels:
+        app: timej-api
+    spec:
+      containers:
+        - name: timej-api
+          image: {{ .Values.image }}
+          ports:
+            - containerPort: 80

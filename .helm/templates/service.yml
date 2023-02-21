@@ -1,0 +1,20 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: timej-api
+  annotations:
+    konghq.com/plugins: timej-api-cors
+spec:
+  ipFamilies:
+    - IPv4
+  ipFamilyPolicy: SingleStack
+  ports:
+    - appProtocol: http
+      name: http
+      port: 80
+      protocol: TCP
+      targetPort: 80
+  selector:
+    app: timej-api
+  type: ClusterIP

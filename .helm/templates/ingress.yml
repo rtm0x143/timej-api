@@ -1,0 +1,25 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: timej-api
+  annotations:
+    kubernetes.io/tls-acme: "true"
+    kubernetes.io/ingress.class: kong
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  tls:
+    - secretName: timej-api-k8s-pujak-ru
+      hosts:
+        - {{ .Values.host }}
+  rules:
+    - host: {{ .Values.host }}
+      http:
+        paths:
+          - pathType: Prefix
+            path: "/"
+            backend:
+              service:
+                name: timej-api
+                port:
+                  number: 80
