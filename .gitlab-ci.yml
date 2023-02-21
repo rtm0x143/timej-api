@@ -1,0 +1,30 @@
+---
+include:
+  - template: Jobs/Dependency-Scanning.gitlab-ci.yml
+  - project: 'pujak/infrastructure/gitlab-ci'
+    ref: master
+    file:
+      - 'jobs/build.yml'
+      - 'jobs/review.yml'
+      - 'jobs/security.yml'
+      - 'jobs/env-cleaner.yml'
+
+
+workflow:
+  rules:
+    - if: $CI_COMMIT_MESSAGE =~ /skip-ci/
+      when: never
+    - when: always
+
+stages:
+  - operation
+  - build
+  - review
+  - test
+  - security
+  - deploy
+
+
+build-image:
+  variables:
+    DOCKERFILE_PATH: .
