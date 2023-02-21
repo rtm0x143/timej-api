@@ -19,7 +19,7 @@ _-----NOT DOCUMENTED YET-----_
 ### Структура коммита
 Для включения CI/CD в ветках feature/*, коммит должен содержать ключевое слово CI. <br>
 Пример коммита для включения проверки кода на наличие секретов и проверки Kubernetes манифестов:
-```js
+```
 feat(awesome-service): New awesome logic
  - Added first-awesome-feature
  - Added second-awesome-feature
