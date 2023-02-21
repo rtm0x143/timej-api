@@ -9,3 +9,30 @@
 cd ./Protos
 python genprotos.py
 ```
+
+# CI/CD Workflow
+### Работа с ветками master / dev
+_-----NOT DOCUMENTED YET-----_
+
+### Работа с ветками feature/*
+По умолчанию CI/CD в ветках feature/* отключен, для его работы необходимо использовать правильную структуру коммита и вызвать необходимые команды.
+### Структура коммита
+Для включения CI/CD в ветках feature/*, коммит должен содержать ключевое слово CI. <br>
+Пример коммита для включения проверки кода на наличие секретов и проверки Kubernetes манифестов:
+```js
+feat(awesome-service): New awesome logic
+ - Added first-awesome-feature
+ - Added second-awesome-feature
+ 
+CI:
+/run-secret-scan
+/run-kube-scan
+```
+### Список команд
+* run-all-sec - _Полное Security тестирование_
+  * run-kube-scan - _Проверка Kubernetes манифестов_
+  * run-sem-scan - _Семантическая проверка_
+  * run-image-scan - _Проверка контейнеров_
+  * run-secret-scan - _Проверка на секреты в коде_
+  * run-sec-code-scan - _Проверка кода_
+* run-review - _Запуск review окружения_
