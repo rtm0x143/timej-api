@@ -10,8 +10,7 @@ namespace TimejApi.Controllers
     public class UserController : Controller
     {
         [HttpPost("login")]
-        //Return token
-        public async Task<ActionResult<string>> Login(UserLogin user)
+        public async Task<ActionResult<AuthResult>> Login(UserLogin user)
         {
             throw new NotImplementedException();
         }
@@ -22,10 +21,16 @@ namespace TimejApi.Controllers
         /// <param name="user"></param>
         [HttpPost("register")]
         // TODO: Add policy [Authorize(Policy = "Admin")]
-        public async Task<ActionResult<User>> RegisterUser(UserRegister user)
+        public async Task<ActionResult<AuthResult>> RegisterUser(UserRegister user)
         {
             throw new NotImplementedException();
         }
 
+        [HttpGet("{id}")]
+        [Authorize]
+        public async Task<ActionResult<UserDto>> Get(Guid id)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
