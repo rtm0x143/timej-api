@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using static TimejApi.Data.Models.User;
+using static TimejApi.Data.Entities.User;
 
-namespace TimejApi.Data.Models
+namespace TimejApi.Data.Entities
 {
     [PrimaryKey(nameof(EditorId), nameof(AllowedFacultyId))]
     public class UserEditFacultyPermission

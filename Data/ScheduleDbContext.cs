@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using TimejApi.Data.Models;
+using TimejApi.Data.Entities;
 
 namespace TimejApi.Data
 {

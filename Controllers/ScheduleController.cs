@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics.CodeAnalysis;
+using TimejApi.Data.Dtos;
 
 namespace TimejApi.Controllers
 {
@@ -8,14 +9,6 @@ namespace TimejApi.Controllers
     [Route("api/schedule")]
     public class ScheduleController : Controller
     {
-        public record LessonGroup(uint? SubGroupNumber, uint GroupNumber);
-        public record Teacher(Guid Id, string Fullname);
-
-        public record Lesson(Guid Id, DateOnly Date, uint LessonNumber, string LessonType, 
-            string Subject, LessonGroup[] Groups, Teacher Teacher);
-
-        public record ScheduleDay(DateOnly Date, Lesson[] Lessons);
-
         [HttpGet]
         public async Task<ActionResult<ScheduleDay[]>> Get(
             [FromQuery] DateOnly beginDate,
@@ -31,24 +24,29 @@ namespace TimejApi.Controllers
 
         [HttpGet("default")]
         [Authorize]
-        public async Task<ActionResult<ScheduleDay[]>> GetDefault()
+        public async Task<ActionResult<ScheduleDay[]>> GetDefault([FromQuery] DateOnly beginDate,
+            [FromQuery] DateOnly endDate)
         {
             throw new NotImplementedException();
         }
-
-        public record LessonCreation(DateOnly Date, uint LessonNumber, Guid LessonId,
-            Guid SubjectId, LessonGroup[] Groups, Guid TeacherId);
 
         [HttpPost]
         // TODO: Add policy [Authorize(Policy = "SheduleEditor")]
-        public async Task<ActionResult<Lesson>> Post(LessonCreation lesson)
+        public async Task<ActionResult<LessonDto>> Post(LessonCreation lesson)
         {
             throw new NotImplementedException();
         }
 
-        [HttpPut]
+        [HttpPut("{id}")]
         // TODO: Add policy [Authorize(Policy = "SheduleEditor")]
-        public async Task<ActionResult<Lesson>> Rut(LessonCreation lesson)
+        public async Task<ActionResult<LessonDto>> Put(Guid id, LessonCreation lesson)
+        {
+            throw new NotImplementedException();
+        }
+
+        [HttpDelete("{id}")]
+        // TODO: Add policy [Authorize(Policy = "SheduleEditor")]
+        public async Task<ActionResult> Delete()
         {
             throw new NotImplementedException();
         }

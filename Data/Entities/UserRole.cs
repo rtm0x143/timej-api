@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace TimejApi.Data.Models
+namespace TimejApi.Data.Entities
 {
     [PrimaryKey(nameof(Role),nameof(UserId))]
     public class UserRole
