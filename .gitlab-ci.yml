@@ -40,6 +40,34 @@ stages:
   - deploy
 
 
-build-image:
+.deploy:
   variables:
-    DOCKERFILE_PATH: .
+    HELM_PATH: .helm/Backend
+
+
+deploy-db:
+  stage: deploy
+  extends:
+    - .deploy
+
+  variables:
+    HELM_PATH: .helm/Database
+    KUBE_NAMESPACE: $CI_PROJECT_NAME-static-$CI_COMMIT_BRANCH
+    HOST: "$CI_COMMIT_BRANCH.$CI_PROJECT_NAME.$KUBE_HOST"
+
+  script:
+    - helm upgrade --set image=$IMAGE_NAME,host=$HOST --namespace $KUBE_NAMESPACE $KUBE_NAMESPACE $HELM_PATH --install --create-namespace
+    - echo Database is up and available at $HOST
+
+  environment:
+    name: $CI_COMMIT_BRANCH-db
+    url: $HOST
+    action: start
+
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: manual
+    - if: $CI_COMMIT_BRANCH == "dev"
+      when: manual
+    - when: never
+
