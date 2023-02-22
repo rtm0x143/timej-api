@@ -71,3 +71,16 @@ deploy-db:
       when: manual
     - when: never
 
+
+deploy-review:
+  script:
+    - helm upgrade --set image=$IMAGE_NAME,host=$HOST,db_conn=$DB_CONNECTION_STRING --namespace $KUBE_NAMESPACE $KUBE_NAMESPACE $HELM_PATH --install --create-namespace
+    - echo Your application is up and available at $HOST
+    - 'curl -i -H "Accept: application/json" -H "Content-Type:application/json" -X POST --data "{\"content\": \"${DISCORD_MESSAGE}\"}" $DISCORD_WEBHOOK'
+
+
+deploy:
+  script:
+    - helm upgrade --set image=$IMAGE_NAME,host=$HOST,db_conn=$DB_CONNECTION_STRING --namespace $KUBE_NAMESPACE $KUBE_NAMESPACE $HELM_PATH --install --create-namespace
+    - echo Application is up and available at $HOST
+    - 'curl -i -H "Accept: application/json" -H "Content-Type:application/json" -X POST --data "{\"content\": \"${DISCORD_MESSAGE}\"}" $DISCORD_PROD_WEBHOOK'
