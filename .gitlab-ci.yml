@@ -56,7 +56,7 @@ deploy-db:
     HOST: "$CI_COMMIT_BRANCH.$CI_PROJECT_NAME.$KUBE_HOST"
 
   script:
-    - helm upgrade --set image=$IMAGE_NAME,host=$HOST --namespace $KUBE_NAMESPACE $KUBE_NAMESPACE $HELM_PATH --install --create-namespace
+    - helm upgrade --set host=$HOST,db_pass=$DB_PASSWORD --namespace $KUBE_NAMESPACE $KUBE_NAMESPACE $HELM_PATH --install --create-namespace
     - echo Database is up and available at $HOST
 
   environment:
