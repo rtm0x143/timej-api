@@ -8,6 +8,7 @@ include:
       - 'jobs/review.yml'
       - 'jobs/security.yml'
       - 'jobs/env-cleaner.yml'
+      - 'jobs/deploy.yml'
 
 
 workflow:
