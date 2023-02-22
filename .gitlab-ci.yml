@@ -52,7 +52,7 @@ deploy-db:
 
   variables:
     HELM_PATH: .helm/Database
-    KUBE_NAMESPACE: $CI_PROJECT_NAME-static-$CI_COMMIT_BRANCH
+    KUBE_NAMESPACE: $CI_PROJECT_NAME-static-$CI_COMMIT_BRANCH-db
     HOST: "$CI_COMMIT_BRANCH.$CI_PROJECT_NAME.$KUBE_HOST"
 
   script:
