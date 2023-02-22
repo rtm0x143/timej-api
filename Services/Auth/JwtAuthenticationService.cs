@@ -3,7 +3,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using Timej.Schedule;
 
 namespace TimejApi.Services.Auth
 {
