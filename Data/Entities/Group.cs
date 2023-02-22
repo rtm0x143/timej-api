@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace TimejApi.Data.Models
+namespace TimejApi.Data.Entities
 {
 
     public record Group(int groupNumber)

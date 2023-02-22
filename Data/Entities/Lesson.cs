@@ -1,4 +1,4 @@
-﻿namespace TimejApi.Data.Models
+﻿namespace TimejApi.Data.Entities
 {
     public enum LessonNumber
     {

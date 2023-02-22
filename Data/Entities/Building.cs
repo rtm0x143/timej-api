@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 
-namespace TimejApi.Data.Models
+namespace TimejApi.Data.Entities
 {
     [PrimaryKey(nameof(Number))]
     public record Building

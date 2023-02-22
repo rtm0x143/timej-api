@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace TimejApi.Data.Models
+namespace TimejApi.Data.Entities
 {
     [PrimaryKey(nameof(LessonId),nameof(GroupId))]
     public record LessonGroup

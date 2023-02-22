@@ -1,7 +1,6 @@
-﻿using System.ComponentModel;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
-namespace TimejApi.Data.Models
+namespace TimejApi.Data.Entities
 {
     public enum Gender
     {
@@ -21,8 +20,8 @@ namespace TimejApi.Data.Models
             MODERATOR
         }
         public Guid Id { get; set; }
-        [EmailAddress]
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+        [EmailAddress]
         public string Email { get; set; }
         public string PasswordHash { get; set; }
         public string Name { get; set; }
