@@ -40,6 +40,6 @@ stages:
   - deploy
 
 
-build-image:
+deploy:
   variables:
-    DOCKERFILE_PATH: .
+    HELM_PATH: ./.helm/Backend
