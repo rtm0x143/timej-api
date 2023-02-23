@@ -1,6 +1,6 @@
 ﻿namespace TimejApi.Data.Dtos;
 
-public record GroupDto(uint? SubGroupNumber, uint GroupNumber);
+public record GroupDto(Guid Id, uint? SubGroupNumber, uint GroupNumber);
 public record Teacher(Guid Id, string Fullname);
 
 public record LessonDto(Guid Id, DateOnly Date, uint LessonNumber, string LessonType,
