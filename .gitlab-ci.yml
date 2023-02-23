@@ -40,12 +40,18 @@ stages:
   - deploy
 
 
+.deploy:
+  variables:
+    HELM_PATH: .helm/api
+
+
 deploy-db:
   stage: deploy
   extends:
     - .deploy
 
   variables:
+    HELM_PATH: .helm/database
     KUBE_NAMESPACE: $CI_PROJECT_NAME-static-$CI_COMMIT_BRANCH-db
     HOST: "$CI_COMMIT_BRANCH.$CI_PROJECT_NAME.$KUBE_HOST"
 
