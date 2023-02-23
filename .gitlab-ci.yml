@@ -40,11 +40,6 @@ stages:
   - deploy
 
 
-.deploy:
-  variables:
-    HELM_PATH: .helm/Backend
-
-
 deploy-db:
   stage: deploy
   extends:
