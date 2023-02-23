@@ -1,0 +1,17 @@
+---
+apiVersion: v2
+name: TimeJ
+version: 0.0.1
+dependencies:
+  - name: TimeJ-API
+    version: 0.0.1
+    condition: api.enabled
+  - name: TimeJ-DB
+    version: 0.0.1
+    condition: db.enabled
+maintainers:
+  - name: Oleg Batrakov
+    email: oleg.cortuzz1@gmail.com
+    url: https://gitlab.pujak.ru/cortuzz
+appVersion: 0.0.1
+deprecated: false
