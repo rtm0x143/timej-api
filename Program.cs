@@ -1,9 +1,10 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using System.Data.Common;
 using TimejApi.Data;
+using TimejApi.Data.Entities;
 using TimejApi.Helpers;
 using TimejApi.Services.Auth;
+using TimejApi.Services.Auth.Policies;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,9 +18,13 @@ builder.Services
             new JwtAuthenticationService(builder.Configuration, null).CreateValidationParameters();
     });
 
-builder.Services.AddAuthorization(options =>
+builder.Services.AddAuthorization(configure =>
 {
-    // TODO: Add policies
+    configure.AddPolicy("ScheduleEditor", configurePolicy =>
+    {
+        configurePolicy.RequireRole(nameof(User.Role.SCHEDULE_EDITOR), nameof(User.Role.MODERATOR));
+        configurePolicy.AddRequirements(new FacultyEditorRequirement());
+    });
 });
 
 builder.Services.AddControllers();
