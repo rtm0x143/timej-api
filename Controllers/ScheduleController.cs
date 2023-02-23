@@ -13,11 +13,11 @@ namespace TimejApi.Controllers
         public async Task<ActionResult<ScheduleDay[]>> Get(
             [FromQuery] DateOnly beginDate,
             [FromQuery] DateOnly endDate,
-            [FromQuery] uint? groupNumber, 
-            [FromQuery] Guid? teacherId, 
-            [FromQuery] [NotNullIfNotNull(nameof(buildingNumber))] uint? auditoryNumber,
-            [FromQuery] [NotNullIfNotNull(nameof(auditoryNumber))] uint? buildingNumber,
-            [FromQuery] bool isOnline = false) 
+            [FromQuery] uint? groupNumber,
+            [FromQuery] Guid? teacherId,
+            [FromQuery][NotNullIfNotNull(nameof(buildingNumber))] uint? auditoryNumber,
+            [FromQuery][NotNullIfNotNull(nameof(auditoryNumber))] uint? buildingNumber,
+            [FromQuery] bool isOnline = false)
         {
             throw new NotImplementedException();
         }
@@ -32,21 +32,24 @@ namespace TimejApi.Controllers
 
         [HttpPost]
         // TODO: Add policy [Authorize(Policy = "SheduleEditor")]
-        public async Task<ActionResult<LessonDto>> Post(LessonCreation lesson)
+        public async Task<ActionResult<LessonDto>> Post(LessonCreation lesson, [FromQuery] DateOnly? beginDate,
+            [FromQuery] DateOnly? endDate)
         {
             throw new NotImplementedException();
         }
 
         [HttpPut("{id}")]
         // TODO: Add policy [Authorize(Policy = "SheduleEditor")]
-        public async Task<ActionResult<LessonDto>> Put(Guid id, LessonCreation lesson)
+        public async Task<ActionResult<LessonDto>> Put(Guid id, LessonCreation lesson, [FromQuery] DateOnly? beginDate,
+            [FromQuery] DateOnly? endDate)
         {
             throw new NotImplementedException();
         }
 
         [HttpDelete("{id}")]
         // TODO: Add policy [Authorize(Policy = "SheduleEditor")]
-        public async Task<ActionResult> Delete()
+        public async Task<ActionResult> Delete(Guid id, LessonCreation lesson, [FromQuery] DateOnly? beginDate,
+            [FromQuery] DateOnly? endDate)
         {
             throw new NotImplementedException();
         }
