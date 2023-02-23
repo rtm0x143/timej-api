@@ -17,7 +17,7 @@ namespace TimejApi.Data
         public DbSet<LessonType> LessonTypes { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<Subject> Subjects { get; set; }
-
+        public DbSet<UserEditFacultyPermission> UserEditFacultyPermissions { get; set; }
         public DbSet<UserRole> UserRoles { get; set; }
     }
 }
