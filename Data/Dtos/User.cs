@@ -6,13 +6,13 @@ using TimejApi.Data.Entities;
 
 public record UserLogin
 {
-    [EmailAddress]
+    // [EmailAddress]
     public string Email { get; set; }
     [PasswordPropertyText]
     public string Password { get; set; }
 }
 
-public record UserBase
+public record UserData
 {
     [EmailAddress]
     public string Email { get; set; }
@@ -24,14 +24,14 @@ public record UserBase
     public int? GroupNumber { get; set; }
 }
 
-public record UserRegister : UserBase
+public record UserRegister : UserData
 {
     [PasswordPropertyText]
     public string Password { get; set; }
 }
 
-public record UserDto(Guid Id) : UserBase;
+public record UserDto(Guid Id) : UserData;
 
-public record AuthResult(string Token);
+public record AuthResult(string Token, string RefreshToken);
 
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
