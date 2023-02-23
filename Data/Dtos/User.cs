@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using TimejApi.Data.Entities;
 
@@ -6,7 +6,7 @@ using TimejApi.Data.Entities;
 
 public record UserLogin
 {
-    // [EmailAddress]
+    [EmailAddress]
     public string Email { get; set; }
     [PasswordPropertyText]
     public string Password { get; set; }
