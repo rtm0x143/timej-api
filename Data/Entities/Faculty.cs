@@ -13,7 +13,7 @@ namespace TimejApi.Data.Entities
         public Guid Id { get; set; }
         public string Name { get; set; }
         [JsonIgnore]
-        public ICollection<UserEditFacultyPermission>? Editors { get; set; }
+        public ICollection<User>? Editors { get; set; }
         [JsonIgnore]
         public ICollection<Group> Groups { get; set; }
     }
