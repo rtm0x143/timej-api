@@ -8,12 +8,6 @@ namespace TimejApi.Controllers
     [ApiController]
     public class AuditoryController : ControllerBase
     {
-        [HttpGet("{number}")]
-        public async Task<ActionResult<Auditory>> Get(uint number, uint buildingNumber)
-        {
-            throw new NotImplementedException();
-        }
-
         [HttpGet("all")]
         public async Task<ActionResult<Auditory[]>> GetAll(uint buildingNumber)
         {
