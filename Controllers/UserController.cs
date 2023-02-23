@@ -42,8 +42,35 @@ namespace TimejApi.Controllers
         /// Edits user entity. Enable for MODERATOR or entity owner
         /// </summary>
         [HttpPut("{id}")]
-        [Authorize] 
+        [Authorize]
         public async Task<ActionResult<UserDto>> Put(Guid id, UserData user)
+        {
+            throw new NotImplementedException();
+        }
+
+        [HttpDelete("{id}")]
+        // TODO: Add policy [Authorize(Policy = "Admin")]
+        public async Task<ActionResult> Delete(Guid id)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Should only be called when user ID is an ID of editor
+        /// </summary>
+        [HttpPost("{userId}")]
+        // TODO: Add policy [Authorize(Policy = "Admin")]
+        public async Task<ActionResult> AddFaculties(Guid userId, Guid[] facultyIds)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Should only be called when user ID is an ID of editor
+        /// </summary>
+        [HttpPut("{userId}")]
+        // TODO: Add policy [Authorize(Policy = "Admin")]
+        public async Task<ActionResult> RemoveFaculties(Guid userId, Guid[] facultyIds)
         {
             throw new NotImplementedException();
         }

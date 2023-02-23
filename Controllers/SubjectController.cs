@@ -22,21 +22,21 @@ namespace TimejApi.Controllers
 
         [HttpPost]
         // TODO: Add policy [Authorize(Policy = "SheduleEditor")]
-        public async Task<ActionResult<Subject>> Post(SubjectCreation auditory)
+        public async Task<ActionResult<Subject>> Post(SubjectCreation subject)
         {
             throw new NotImplementedException();
         }
 
         [HttpPut("{id}")]
         // TODO: Add policy [Authorize(Policy = "SheduleEditor")]
-        public async Task<ActionResult<Subject>> Put(Guid id, SubjectCreation auditory)
+        public async Task<ActionResult<Subject>> Put(Guid id, SubjectCreation subject)
         {
             throw new NotImplementedException();
         }
 
         [HttpDelete("{id}")]
         // TODO: Add policy [Authorize(Policy = "SheduleEditor")]
-        public async Task Delete(Guid id)
+        public async Task<ActionResult> Delete(Guid id)
         {
             throw new NotImplementedException();
         }
