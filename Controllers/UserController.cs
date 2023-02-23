@@ -1,7 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using TimejApi.Data.Dtos;
-using TimejApi.Data.Entities;
 
 namespace TimejApi.Controllers
 {
@@ -11,6 +9,12 @@ namespace TimejApi.Controllers
     {
         [HttpPost("login")]
         public async Task<ActionResult<AuthResult>> Login(UserLogin user)
+        {
+            throw new NotImplementedException();
+        }
+
+        [HttpPost("refresh")]
+        public async Task<ActionResult<AuthResult>> Refresh(AuthResult auth)
         {
             throw new NotImplementedException();
         }
@@ -27,8 +31,19 @@ namespace TimejApi.Controllers
         }
 
         [HttpGet("{id}")]
-        [Authorize]
+        // [Authorize]
+        //      TODO : should it be public ?
         public async Task<ActionResult<UserDto>> Get(Guid id)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Edits user entity. Enable for MODERATOR or entity owner
+        /// </summary>
+        [HttpPut("{id}")]
+        [Authorize]
+        public async Task<ActionResult<UserDto>> Put(Guid id, UserData user)
         {
             throw new NotImplementedException();
         }
@@ -40,19 +55,12 @@ namespace TimejApi.Controllers
             throw new NotImplementedException();
         }
 
-        [HttpPut("{id}")]
-        // TODO: Add policy [Authorize(Policy = "Admin")]
-        public async Task<ActionResult<UserDto>> Edit(Guid id, UserBase user)
-        {
-            throw new NotImplementedException();
-        }
-
         /// <summary>
         /// Should only be called when user ID is an ID of editor
         /// </summary>
         [HttpPost("{userId}")]
         // TODO: Add policy [Authorize(Policy = "Admin")]
-        public async Task<ActionResult> AddFaculties(Guid userId, Faculty[] faculties)
+        public async Task<ActionResult> AddFaculties(Guid userId, Guid[] facultyIds)
         {
             throw new NotImplementedException();
         }
@@ -62,7 +70,7 @@ namespace TimejApi.Controllers
         /// </summary>
         [HttpPut("{userId}")]
         // TODO: Add policy [Authorize(Policy = "Admin")]
-        public async Task<ActionResult> RemoveFaculties(Guid userId, Faculty[] faculties)
+        public async Task<ActionResult> RemoveFaculties(Guid userId, Guid[] facultyIds)
         {
             throw new NotImplementedException();
         }
