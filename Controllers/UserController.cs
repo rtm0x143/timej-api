@@ -1,7 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using TimejApi.Data.Dtos;
-using TimejApi.Data.Entities;
 
 namespace TimejApi.Controllers
 {
@@ -11,6 +9,12 @@ namespace TimejApi.Controllers
     {
         [HttpPost("login")]
         public async Task<ActionResult<AuthResult>> Login(UserLogin user)
+        {
+            throw new NotImplementedException();
+        }
+
+        [HttpPost("refresh")]
+        public async Task<ActionResult<AuthResult>> Refresh(AuthResult auth)
         {
             throw new NotImplementedException();
         }
@@ -27,8 +31,19 @@ namespace TimejApi.Controllers
         }
 
         [HttpGet("{id}")]
-        [Authorize]
+        // [Authorize]
+        //      TODO : should it be public ?
         public async Task<ActionResult<UserDto>> Get(Guid id)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Edits user entity. Enable for MODERATOR or entity owner
+        /// </summary>
+        [HttpPut("{id}")]
+        [Authorize] 
+        public async Task<ActionResult<UserDto>> Put(Guid id, UserData user)
         {
             throw new NotImplementedException();
         }
