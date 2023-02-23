@@ -32,5 +32,39 @@ namespace TimejApi.Controllers
         {
             throw new NotImplementedException();
         }
+
+        [HttpDelete("{id}")]
+        // TODO: Add policy [Authorize(Policy = "Admin")]
+        public async Task<ActionResult> Delete(Guid id)
+        {
+            throw new NotImplementedException();
+        }
+
+        [HttpPut("{id}")]
+        // TODO: Add policy [Authorize(Policy = "Admin")]
+        public async Task<ActionResult<UserDto>> Edit(Guid id, UserBase user)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Should only be called when user ID is an ID of editor
+        /// </summary>
+        [HttpPost("{userId}")]
+        // TODO: Add policy [Authorize(Policy = "Admin")]
+        public async Task<ActionResult> AddFaculties(Guid userId, Faculty[] faculties)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Should only be called when user ID is an ID of editor
+        /// </summary>
+        [HttpPut("{userId}")]
+        // TODO: Add policy [Authorize(Policy = "Admin")]
+        public async Task<ActionResult> RemoveFaculties(Guid userId, Faculty[] faculties)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

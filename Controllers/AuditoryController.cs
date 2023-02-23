@@ -36,7 +36,7 @@ namespace TimejApi.Controllers
 
         [HttpDelete("{number}")]
         // TODO: Add policy [Authorize(Policy = "SheduleModerator")]
-        public async Task Delete(uint number)
+        public async Task<ActionResult> Delete(uint number)
         {
             throw new NotImplementedException();
         }
