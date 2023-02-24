@@ -23,10 +23,12 @@ public record UserPublicData
     public Gender Gender { get; set; }
 }
 
+public record UserPublicDto(Guid Id) : UserPublicData;
+
 public record UserData : UserPublicData
 {
     public User.Role[] Roles { get; set; }
-    public int? GroupNumber { get; set; }
+    public uint? GroupNumber { get; set; }
 }
 
 

@@ -16,6 +16,21 @@ namespace TimejApi.Data.Mapping
 
             TypeAdapterConfig<User, Teacher>.NewConfig()
                 .Map(dest => dest.Fullname, src => $"{src.Surname} {src.Name} {src.MiddleName}");
+
+            TypeAdapterConfig<User, UserDto>.NewConfig()
+                .Map(dest => dest.Roles, src => src.Roles.Select(r => r.Role));
+
+            TypeAdapterConfig<UserData, User>.NewConfig()
+                .Map(dest => dest.Roles, src => src.Roles.Select(r => new UserRole { Role = r }))
+                .Ignore(u => u.AllowedFaculties!);
+
+            TypeAdapterConfig<UserRegister, User>.NewConfig()
+                .Ignore(u => u.AllowedFaculties!)
+                .Ignore(u => u.StudentGroup!.Lessons!)
+                .Ignore(u => u.StudentGroup!.Faculty)
+                .Map(dest => dest.Roles, src => src.Roles.Select(r => new UserRole() { Role = r }))
+                .Map(dest => dest.StudentGroup, src => src.GroupNumber != null ? new Group() { GroupNumber = src.GroupNumber.Value } : null);
+
         }
     }
 }
