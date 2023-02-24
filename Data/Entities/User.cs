@@ -1,7 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace TimejApi.Data.Entities
 {
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum Gender
     {
         UNSPECIFIED,
@@ -11,6 +13,7 @@ namespace TimejApi.Data.Entities
 
     public record User
     {
+        [JsonConverter(typeof(JsonStringEnumConverter))]
         public enum Role
         {
             UNSPECIFIED,
@@ -23,7 +26,7 @@ namespace TimejApi.Data.Entities
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         [EmailAddress]
         public string Email { get; set; }
-        public string PasswordHash { get; set; }
+        public string? PasswordHash { get; set; }
         public string Name { get; set; }
         public string Surname { get; set; }
         public string? MiddleName { get; set; }
