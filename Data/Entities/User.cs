@@ -35,6 +35,6 @@ namespace TimejApi.Data.Entities
         public Group? StudentGroup { get; set; }
 
         //Editor specific
-        public ICollection<UserEditFacultyPermission>? AllowedFaculties { get; set; }
+        public ICollection<Faculty>? AllowedFaculties { get; set; }
     }
 }
