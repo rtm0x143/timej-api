@@ -9,6 +9,9 @@ namespace TimejApi.Controllers
     [Route("api/schedule")]
     public class ScheduleController : Controller
     {
+        /// <summary>
+        /// [NOT IMPLEMENTED]
+        /// </summary>
         [HttpGet]
         public async Task<ActionResult<ScheduleDay[]>> Get(
             [FromQuery] DateOnly beginDate,
@@ -22,6 +25,9 @@ namespace TimejApi.Controllers
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// [NOT IMPLEMENTED]
+        /// </summary>
         [HttpGet("default")]
         [Authorize]
         public async Task<ActionResult<ScheduleDay[]>> GetDefault([FromQuery] DateOnly beginDate,
@@ -30,6 +36,9 @@ namespace TimejApi.Controllers
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// [NOT IMPLEMENTED]
+        /// </summary>
         [HttpPost]
         // TODO: Add policy [Authorize(Policy = "SheduleEditor")]
         public async Task<ActionResult<LessonDto>> Post(LessonCreation lesson, [FromQuery] DateOnly? beginDate,
@@ -38,6 +47,9 @@ namespace TimejApi.Controllers
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// [NOT IMPLEMENTED]
+        /// </summary>
         [HttpPut("{id}")]
         // TODO: Add policy [Authorize(Policy = "SheduleEditor")]
         public async Task<ActionResult<LessonDto>> Put(Guid id, LessonCreation lesson, [FromQuery] DateOnly? beginDate,
@@ -46,6 +58,9 @@ namespace TimejApi.Controllers
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// [NOT IMPLEMENTED]
+        /// </summary>
         [HttpDelete("{id}")]
         // TODO: Add policy [Authorize(Policy = "SheduleEditor")]
         public async Task<ActionResult> Delete(Guid id, LessonCreation lesson, [FromQuery] DateOnly? beginDate,
