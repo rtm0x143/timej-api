@@ -34,7 +34,7 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 // Applies custom "Mapster" configuration
-MappingConfig.Aplly();
+MappingConfig.Apply();
 
 var connectionString = builder.GetConnectionString();
 builder.Services.AddDbContext<ScheduleDbContext>(options => options.UseNpgsql(connectionString));
