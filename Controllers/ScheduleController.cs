@@ -15,8 +15,8 @@ namespace TimejApi.Controllers
             [FromQuery] DateOnly endDate,
             [FromQuery] uint? groupNumber,
             [FromQuery] Guid? teacherId,
-            [FromQuery][NotNullIfNotNull(nameof(buildingNumber))] uint? auditoryNumber,
-            [FromQuery][NotNullIfNotNull(nameof(auditoryNumber))] uint? buildingNumber,
+            [FromQuery] uint? auditoryNumber,
+            [FromQuery] uint? buildingNumber,
             [FromQuery] bool isOnline = false)
         {
             throw new NotImplementedException();
@@ -38,18 +38,32 @@ namespace TimejApi.Controllers
             throw new NotImplementedException();
         }
 
+        [HttpPut("replica/{id}")]
+        // TODO: Add policy [Authorize(Policy = "SheduleEditor")]
+        public async Task<ActionResult<LessonDto>> Put(Guid replicaId, LessonCreation lesson, [FromQuery] DateOnly? beginDate,
+            [FromQuery] DateOnly? endDate)
+        {
+            throw new NotImplementedException();
+        }
+
+        [HttpDelete("replica/{id}")]
+        // TODO: Add policy [Authorize(Policy = "SheduleEditor")]
+        public async Task<ActionResult> Delete(Guid replicaId, [FromQuery] DateOnly? beginDate,
+            [FromQuery] DateOnly? endDate)
+        {
+            throw new NotImplementedException();
+        }
+
         [HttpPut("{id}")]
         // TODO: Add policy [Authorize(Policy = "SheduleEditor")]
-        public async Task<ActionResult<LessonDto>> Put(Guid id, LessonCreation lesson, [FromQuery] DateOnly? beginDate,
-            [FromQuery] DateOnly? endDate)
+        public async Task<ActionResult<LessonDto>> PutSingle(Guid id, LessonCreation lesson)
         {
             throw new NotImplementedException();
         }
 
         [HttpDelete("{id}")]
         // TODO: Add policy [Authorize(Policy = "SheduleEditor")]
-        public async Task<ActionResult> Delete(Guid id, LessonCreation lesson, [FromQuery] DateOnly? beginDate,
-            [FromQuery] DateOnly? endDate)
+        public async Task<ActionResult> DeleteSingle(Guid id)
         {
             throw new NotImplementedException();
         }

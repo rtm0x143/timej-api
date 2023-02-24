@@ -16,6 +16,7 @@
     {
 
         public Guid Id { get; set; }
+        public Guid replicaId { get; set; }
         public DateOnly Date { get; set; }
         public LessonNumber Number { get; set; }
         public LessonType LessonType { get; set; }
