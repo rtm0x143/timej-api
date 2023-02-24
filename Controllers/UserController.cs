@@ -7,12 +7,18 @@ namespace TimejApi.Controllers
     [Route("api/user")]
     public class UserController : Controller
     {
+        /// <summary>
+        /// [NOT IMPLEMENTED]
+        /// </summary>
         [HttpPost("login")]
         public async Task<ActionResult<AuthResult>> Login(UserLogin user)
         {
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// [NOT IMPLEMENTED]
+        /// </summary>
         [HttpPost("refresh")]
         public async Task<ActionResult<AuthResult>> Refresh(AuthResult auth)
         {
@@ -20,7 +26,7 @@ namespace TimejApi.Controllers
         }
 
         /// <summary>
-        /// An method to create user by admin
+        /// [NOT IMPLEMENTED] An method to create user by admin
         /// </summary>
         /// <param name="user"></param>
         [HttpPost("register")]
@@ -30,6 +36,9 @@ namespace TimejApi.Controllers
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// [NOT IMPLEMENTED]
+        /// </summary>
         [HttpGet("{id}")]
         // [Authorize]
         //      TODO : should it be public ?
@@ -39,7 +48,7 @@ namespace TimejApi.Controllers
         }
 
         /// <summary>
-        /// Edits user entity. Enable for MODERATOR or entity owner
+        /// [NOT IMPLEMENTED] Edits user entity. Enable for MODERATOR or entity owner
         /// </summary>
         [HttpPut("{id}")]
         [Authorize]
@@ -48,6 +57,9 @@ namespace TimejApi.Controllers
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// [NOT IMPLEMENTED]
+        /// </summary>
         [HttpDelete("{id}")]
         // TODO: Add policy [Authorize(Policy = "Admin")]
         public async Task<ActionResult> Delete(Guid id)
@@ -56,7 +68,7 @@ namespace TimejApi.Controllers
         }
 
         /// <summary>
-        /// Should only be called when user ID is an ID of editor
+        /// [NOT IMPLEMENTED] Should only be called when user ID is an ID of editor
         /// </summary>
         [HttpPost("{userId}")]
         // TODO: Add policy [Authorize(Policy = "Admin")]
@@ -66,7 +78,7 @@ namespace TimejApi.Controllers
         }
 
         /// <summary>
-        /// Should only be called when user ID is an ID of editor
+        /// [NOT IMPLEMENTED] Should only be called when user ID is an ID of editor
         /// </summary>
         [HttpPut("{userId}")]
         // TODO: Add policy [Authorize(Policy = "Admin")]
