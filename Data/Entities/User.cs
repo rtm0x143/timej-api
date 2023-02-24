@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
 namespace TimejApi.Data.Entities
@@ -11,6 +12,7 @@ namespace TimejApi.Data.Entities
         FEMALE
     }
 
+    [Index(nameof(Email), IsUnique = true)]
     public record User
     {
         [JsonConverter(typeof(JsonStringEnumConverter))]
