@@ -1,3 +1,4 @@
+using EntityFramework.Exceptions.PostgreSQL;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using TimejApi.Data.Entities;
@@ -13,6 +14,7 @@ using TimejApi.Services.Auth.Policies;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddSingleton<IJwtAuthentication, JwtAuthenticationService>();
+builder.Services.AddSingleton<IPasswordHasher, PasswordHasher>();
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -43,7 +45,11 @@ builder.Services.AddSwaggerGen(options =>
 MappingConfig.Apply();
 
 var connectionString = builder.GetConnectionString();
-builder.Services.AddDbContext<ScheduleDbContext>(options => options.UseNpgsql(connectionString));
+builder.Services.AddDbContext<ScheduleDbContext>(options =>
+{
+    options.UseNpgsql(connectionString);
+    options.UseExceptionProcessor();
+});
 
 var app = builder.Build();
 
