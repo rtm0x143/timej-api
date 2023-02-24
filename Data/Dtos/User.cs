@@ -20,7 +20,7 @@ public record UserPublicData
     public string Email { get; set; }
     public string Name { get; set; }
     public string Surname { get; set; }
-    public string MiddleName { get; set; }
+    public string? MiddleName { get; set; }
     public Gender Gender { get; set; }
 }
 
@@ -29,7 +29,7 @@ public record UserPublicDto(Guid Id) : UserPublicData;
 public record UserData : UserPublicData
 {
     public User.Role[] Roles { get; set; }
-    public GroupDto Group { get; set; }
+    public GroupDto? Group { get; set; }
 }
 
 
@@ -40,7 +40,13 @@ public record UserRegister : UserData
     public string Password { get; set; }
 }
 
-public record UserDto(Guid Id) : UserData;
+public record UserDto : UserData
+{
+    public Guid Id { get; set; }
+    // Added for compatability 
+    public UserDto(Guid id) { Id = id; }
+    public UserDto() { }
+}
 
 public record AuthResult(string Token, string RefreshToken);
 

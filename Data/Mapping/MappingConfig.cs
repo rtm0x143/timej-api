@@ -1,4 +1,5 @@
 using Mapster;
+using Microsoft.AspNetCore.Routing.Constraints;
 using TimejApi.Data.Dtos;
 using TimejApi.Data.Entities;
 
@@ -29,7 +30,7 @@ namespace TimejApi.Data.Mapping
                 .Ignore(u => u.StudentGroup!.Lessons!)
                 .Ignore(u => u.StudentGroup!.Faculty)
                 .Map(dest => dest.Roles, src => src.Roles.Select(r => new UserRole() { Role = r }))
-                .Map(dest => dest.StudentGroup, src => src.Group != null ? new Group() { GroupNumber = src.Group.GroupNumber } : null);
+                .Map(dest => dest.StudentGroup, src => src.Group);
 
         }
     }
