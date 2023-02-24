@@ -1,4 +1,4 @@
-﻿using Mapster;
+using Mapster;
 using TimejApi.Data.Dtos;
 using TimejApi.Data.Entities;
 
@@ -6,7 +6,7 @@ namespace TimejApi.Data.Mapping
 {
     public static class MappingConfig
     {
-        public static void Aplly()
+        public static void Apply()
         {
             // Add mapping detail like this if found some 
             //
