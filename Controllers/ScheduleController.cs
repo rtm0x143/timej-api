@@ -19,7 +19,7 @@ namespace TimejApi.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<LessonDto[]>> Get(
+        public async Task<ActionResult<ScheduleDay[]>> Get(
             [FromQuery] DateOnly beginDate,
             [FromQuery] DateOnly endDate,
             [FromQuery] Guid? groupNumber,

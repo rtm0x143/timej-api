@@ -22,7 +22,7 @@ namespace TimejApi.Services
 
         public async Task<LessonDto[]> EditLessons(Guid replicaId, LessonCreation lesson)
         {
-            var lessons = await _dbContext.Lessons.Where(x => x.replicaId == replicaId).ToListAsync();
+            var lessons = await _dbContext.Lessons.Where(x => x.ReplicaId == replicaId).ToListAsync();
             foreach (var item in lessons)
             {
                 lesson.Adapt(item);
@@ -40,7 +40,7 @@ namespace TimejApi.Services
 
         public async Task DeleteLessons(Guid replicaId)
         {
-            await _dbContext.Lessons.Where(x => x.replicaId == replicaId).ExecuteDeleteAsync();
+            await _dbContext.Lessons.Where(x => x.ReplicaId == replicaId).ExecuteDeleteAsync();
         }
 
         public async Task<LessonDto> EditSingle(Guid id, LessonCreation lesson)

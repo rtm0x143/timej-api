@@ -1,12 +1,14 @@
-﻿namespace TimejApi.Data.Dtos;
+﻿using TimejApi.Data.Entities;
+
+namespace TimejApi.Data.Dtos;
 
 public record GroupDto(Guid Id, uint GroupNumber);
 public record LessonGroupDto(Guid Id, uint? SubGroupNumber, uint GroupNumber) : GroupDto(Id, GroupNumber);
 
 public record Teacher(Guid Id, string Fullname);
 
-public record LessonDto(Guid Id, DateOnly Date, uint LessonNumber, string LessonType,
-    string Subject, LessonGroupDto[] Groups, Teacher Teacher);
+public record LessonDto(Guid Id, Guid replicaId, DateOnly Date, uint LessonNumber, string LessonType,
+    string Subject, LessonGroupDto[] Groups, Teacher Teacher, Auditory Auditory);
 
 public record ScheduleDay(DateOnly Date, LessonDto[] Lessons);
 

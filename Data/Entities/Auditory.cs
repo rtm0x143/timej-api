@@ -13,5 +13,6 @@ namespace TimejApi.Data.Entities
         public uint BuildingNumber { get; set; }
         [JsonIgnore]
         public Building Building { get; set; }
+        public string? Description { get; set; }
     }
 }
