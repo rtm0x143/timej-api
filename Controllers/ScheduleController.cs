@@ -19,7 +19,7 @@ namespace TimejApi.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<ScheduleDay[]>> Get(
+        public async Task<ActionResult<LessonDto[]>> Get(
             [FromQuery] DateOnly beginDate,
             [FromQuery] DateOnly endDate,
             [FromQuery] Guid? groupNumber,
@@ -38,6 +38,9 @@ namespace TimejApi.Controllers
             }
         }
 
+        /// <summary>
+        /// [NOT IMPLEMENTED]
+        /// </summary>
         [HttpGet("default")]
         [Authorize]
         public async Task<ActionResult<ScheduleDay[]>> GetDefault([FromQuery] DateOnly beginDate,
@@ -46,6 +49,9 @@ namespace TimejApi.Controllers
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Create lessons in a range
+        /// </summary>
         [HttpPost]
         // TODO: Add policy [Authorize(Policy = "SheduleEditor")]
         public async Task<ActionResult<LessonDto>> Post(LessonCreation lesson, [FromQuery] DateOnly? beginDate,
@@ -104,6 +110,9 @@ namespace TimejApi.Controllers
             }
         }
 
+        /// <summary>
+        /// Delete single lesson by id
+        /// </summary>
         [HttpDelete("{id}")]
         // TODO: Add policy [Authorize(Policy = "SheduleEditor")]
         public async Task<ActionResult> DeleteSingle(Guid id)
