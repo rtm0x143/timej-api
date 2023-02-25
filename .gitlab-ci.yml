@@ -77,6 +77,21 @@ deploy-db:
     - when: never
 
 
+deploy-redis:
+  stage: deploy
+  extends:
+    - deploy-db
+
+  variables:
+    HELM_PATH: .helm/charts/redis
+    KUBE_NAMESPACE: $CI_PROJECT_NAME-static-$CI_COMMIT_BRANCH-redis
+
+  environment:
+    name: $CI_COMMIT_BRANCH-redis
+    url: $HOST
+    action: start
+
+
 deploy-review:
   script:
     - helm upgrade --set image=$IMAGE_NAME,host=$HOST,db_conn=$DB_CONNECTION_STRING --namespace $KUBE_NAMESPACE $KUBE_NAMESPACE $HELM_PATH --install --create-namespace
