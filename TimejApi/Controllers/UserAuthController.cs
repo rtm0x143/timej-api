@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using StackExchange.Redis;
+using Microsoft.AspNetCore.Mvc;
 using TimejApi.Services.Auth;
 using TimejApi.Services.User;
 
