@@ -1,0 +1,11 @@
+---
+apiVersion: v1
+name: TimeJ-Redis
+version: 0.0.1
+
+maintainers:
+  - name: Oleg Batrakov
+    email: oleg.cortuzz1@gmail.com
+    url: https://gitlab.pujak.ru/cortuzz
+appVersion: 0.0.1
+deprecated: false
