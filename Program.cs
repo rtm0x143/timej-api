@@ -24,7 +24,7 @@ builder.Services.AddAuthorization(options =>
 {
     // TODO: Add policies
 });
-
+builder.Services.AddScoped<ISchedule,ScheduleService>();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
