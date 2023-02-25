@@ -4,13 +4,13 @@ ARG ENVIRONMENT=Development
 
 
 ###### BASE IMAGE #####
-FROM mcr.microsoft.com/dotnet/aspnet:7.0 AS base
+FROM mcr.microsoft.com/dotnet/aspnet:7.0-alpine3.17-amd64 AS base
 WORKDIR /app
 EXPOSE 80
 
 
 ###### BUILD IMAGE #####
-FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:7.0-alpine3.16-amd64 AS build
 ARG PROJECT_NAME
 ARG BUILD_TYPE
 
