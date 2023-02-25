@@ -10,18 +10,27 @@ namespace TimejApi.Controllers
     [Route("api/building")]
     public class BuildingController : Controller
     {
+        /// <summary>
+        /// [NOT IMPLEMENTED]
+        /// </summary>
         [HttpGet("{number}")]
         public async Task<ActionResult<Building>> Get(uint number)
         {
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// [NOT IMPLEMENTED]
+        /// </summary>
         [HttpGet("all")]
         public async Task<ActionResult<Building[]>> GetAll()
         {
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// [NOT IMPLEMENTED]
+        /// </summary>
         [HttpPost]
         // TODO: Add policy [Authorize(Policy = "SheduleModerator")]
         public async Task<ActionResult<Building>> Post(BuildingCreation building)
@@ -29,6 +38,9 @@ namespace TimejApi.Controllers
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// [NOT IMPLEMENTED]
+        /// </summary>
         [HttpPut("{number}")]
         // TODO: Add policy [Authorize(Policy = "SheduleModerator")]
         public async Task<ActionResult<LessonDto>> Put(uint number, BuildingCreation building)
@@ -36,6 +48,9 @@ namespace TimejApi.Controllers
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// [NOT IMPLEMENTED]
+        /// </summary>
         [HttpDelete("{number}")]
         // TODO: Add policy [Authorize(Policy = "SheduleModerator")]
         public async Task<ActionResult> Delete(uint number)

@@ -8,18 +8,27 @@ namespace TimejApi.Controllers
     [ApiController]
     public class SubjectController : ControllerBase
     {
+        /// <summary>
+        /// [NOT IMPLEMENTED]
+        /// </summary>
         [HttpGet("{id}")]
         public async Task<ActionResult<Subject>> Get(Guid id)
         {
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// [NOT IMPLEMENTED]
+        /// </summary>
         [HttpGet("all")]
         public async Task<ActionResult<Subject[]>> GetAll()
         {
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// [NOT IMPLEMENTED]
+        /// </summary>
         [HttpPost]
         // TODO: Add policy [Authorize(Policy = "SheduleEditor")]
         public async Task<ActionResult<Subject>> Post(SubjectCreation subject)
@@ -27,6 +36,9 @@ namespace TimejApi.Controllers
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// [NOT IMPLEMENTED]
+        /// </summary>
         [HttpPut("{id}")]
         // TODO: Add policy [Authorize(Policy = "SheduleEditor")]
         public async Task<ActionResult<Subject>> Put(Guid id, SubjectCreation subject)
@@ -34,6 +46,9 @@ namespace TimejApi.Controllers
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// [NOT IMPLEMENTED]
+        /// </summary>
         [HttpDelete("{id}")]
         // TODO: Add policy [Authorize(Policy = "SheduleEditor")]
         public async Task<ActionResult> Delete(Guid id)
