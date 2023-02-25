@@ -17,9 +17,10 @@ namespace TimejApi.Services
         Task<LessonDto[]> Get(
             DateOnly beginDate,
             DateOnly endDate,
-            uint? groupNumber,
+            Guid? groupNumber,
             Guid? teacherId,
-            Auditory? auditory,
+            uint? buildingNumber,
+            uint? auditoryNumber,
             bool isOnline);
     }
 }

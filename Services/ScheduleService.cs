@@ -31,13 +31,11 @@ namespace TimejApi.Services
             return lessons.Select(x => x.Adapt<LessonDto>()).ToArray();
         }
 
-        public async Task<LessonDto[]> Get(DateOnly beginDate, DateOnly endDate, uint? groupNumber, Guid? teacherId, Auditory? auditory, bool isOnline)
+        public async Task<LessonDto[]> Get(DateOnly beginDate, DateOnly endDate, Guid? groupNumber, Guid? teacherId, uint? buildingNumber, uint? auditoryNumber, bool isOnline)
         {
-            var group = _dbContext.Groups.Where(x => x.groupNumber == groupNumber);
-            return await _dbContext.Lessons.Where(x => x.Date >= beginDate && x.Date <= endDate
-            && (teacherId == null || x.Teacher.Id == teacherId)
-            && (group == null || x.AttendingGroups.Select(y => y.Group).Contains(group as Group))
-            && (isOnline ? x.Auditory == null : auditory == null || x.Auditory == auditory)).Select(x => x.Adapt<LessonDto>()).ToArrayAsync();
+            var querry = new LessonQuerry(_dbContext.Lessons);
+            return await querry.SpecifyDate(beginDate, endDate).SpecifyGroup(groupNumber).SpecifyPlace(auditoryNumber, buildingNumber, isOnline)
+                .SpecifyTeacher(teacherId).Get().Select(x => x.Adapt<LessonDto>()).ToArrayAsync();
         }
 
         public async Task DeleteLessons(Guid replicaId)
@@ -76,7 +74,7 @@ namespace TimejApi.Services
 
             var lessonsRange = new List<Lesson>();
             for (DateOnly day = (DateOnly)beginDate; day <= endDate; day.AddDays(DEFAULT_INTERVAL_DAYS))
-            {                
+            {
                 lessonsRange.Add(lesson.Adapt<Lesson>());
                 lesson.Date.AddDays(DEFAULT_INTERVAL_DAYS);
             }
@@ -91,6 +89,54 @@ namespace TimejApi.Services
             await _dbContext.Lessons.AddAsync(_lesson);
             await _dbContext.SaveChangesAsync();
             return _lesson.Adapt<LessonDto>();
+        }
+    }
+
+    public class LessonQuerry
+    {
+        private IQueryable<Lesson> _lessons;
+
+        public LessonQuerry(IQueryable<Lesson> lessons)
+        {
+            _lessons = lessons;
+        }
+        public IQueryable<Lesson> Get()
+        {
+            return _lessons;
+        }
+        public LessonQuerry SpecifyDate(DateOnly beginDate, DateOnly endDate)
+        {
+            _lessons = _lessons.Where(x => x.Date >= beginDate && x.Date <= endDate);
+            return this;
+        }
+        public LessonQuerry SpecifyTeacher(Guid? teacherId)
+        {
+            if (teacherId is null) return this;
+            _lessons = _lessons.Where(x => x.Teacher.Id == teacherId);
+            return this;
+        }
+
+        public LessonQuerry SpecifyGroup(Guid? groupId)
+        {
+            if (groupId is null) return this;
+            _lessons = _lessons.Where(x => x.AttendingGroups.Select(x => x.GroupId).Contains((Guid)groupId));
+            return this;
+        }
+
+        public LessonQuerry SpecifyPlace(uint? auditoryNumber, uint? buildingNumber, bool isOnline)
+        {
+            if (isOnline)
+            {
+                _lessons = _lessons.Where(x => x.Auditory == null);
+                return this;
+            }
+            if (auditoryNumber is null && buildingNumber is null) return this;
+            if (auditoryNumber is null || buildingNumber is null)
+            {
+                throw new ArgumentNullException("Both or none of auditoryNumber and buildingNumber must be specified");
+            }
+            _lessons = _lessons.Where(x => x.Auditory != null && x.Auditory.BuildingNumber == buildingNumber && x.Auditory.AuditoryNumber == auditoryNumber);
+            return this;
         }
     }
 }

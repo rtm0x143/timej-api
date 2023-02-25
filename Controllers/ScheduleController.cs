@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics.CodeAnalysis;
 using TimejApi.Data.Dtos;
+using TimejApi.Data.Entities;
+using TimejApi.Services;
 
 namespace TimejApi.Controllers
 {
@@ -9,17 +11,30 @@ namespace TimejApi.Controllers
     [Route("api/schedule")]
     public class ScheduleController : Controller
     {
+        private readonly ISchedule _schedule;
+
+        public ScheduleController(ISchedule schedule)
+        {
+            _schedule = schedule;
+        }
+
         [HttpGet]
         public async Task<ActionResult<ScheduleDay[]>> Get(
             [FromQuery] DateOnly beginDate,
             [FromQuery] DateOnly endDate,
-            [FromQuery] uint? groupNumber,
+            [FromQuery] Guid? groupNumber,
             [FromQuery] Guid? teacherId,
-            [FromQuery] uint? auditoryNumber,
             [FromQuery] uint? buildingNumber,
+            [FromQuery] uint? auditoryNumber,
             [FromQuery] bool isOnline = false)
         {
-            throw new NotImplementedException();
+            try { 
+            return Ok(await _schedule.Get(beginDate, endDate, groupNumber, teacherId, buildingNumber, auditoryNumber, isOnline));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpGet("default")]
