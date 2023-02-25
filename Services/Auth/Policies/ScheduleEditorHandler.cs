@@ -16,7 +16,7 @@ namespace TimejApi.Services.Auth.Policies
     /// <remarks>
     /// It does not include role check.
     /// </remarks>
-    public class ScheduleEditorHandler : AuthorizationHandler<FacultyEditorRequirement, LessonCreation>
+    public class ScheduleEditorHandler : AuthorizationHandler<FacultyEditorRequirement, IEnumerable<Guid>>
     {
         private readonly ScheduleDbContext _context;
 
@@ -25,8 +25,14 @@ namespace TimejApi.Services.Auth.Policies
             _context = context;
         }
 
-        protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, FacultyEditorRequirement requirement, LessonCreation resource)
+        protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, FacultyEditorRequirement requirement, IEnumerable<Guid> resource)
         {
+            if (context.User.IsInRole(nameof(Data.Entities.User.Role.MODERATOR)))
+            {
+                context.Succeed(requirement);
+                return;
+            }
+
             if (context.User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value is not string sub
                 || Guid.TryParse(sub, out var userId))
             {
@@ -40,9 +46,9 @@ namespace TimejApi.Services.Auth.Policies
                 .Select(g => g.Id)
                 .ToArrayAsync();
             
-            foreach (var group in resource.Groups)
+            foreach (var groupId in resource)
             {
-                if (!allowedGroups.Contains(group.Id)) return;
+                if (!allowedGroups.Contains(groupId)) return;
             }
 
             context.Succeed(requirement);
