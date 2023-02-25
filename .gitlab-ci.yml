@@ -40,6 +40,11 @@ stages:
   - deploy
 
 
+build-image:
+  variables:
+    DOCKERFILE_PATH: ./TimejApi
+
+
 .deploy:
   variables:
     HELM_PATH: .helm/charts/api
