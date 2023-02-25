@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using TimejApi.Data.Dtos;
 using TimejApi.Data.Entities;
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
@@ -23,10 +24,12 @@ public record UserPublicData
     public Gender Gender { get; set; }
 }
 
+public record UserPublicDto(Guid Id) : UserPublicData;
+
 public record UserData : UserPublicData
 {
     public User.Role[] Roles { get; set; }
-    public int? GroupNumber { get; set; }
+    public GroupDto Group { get; set; }
 }
 
 
