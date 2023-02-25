@@ -17,18 +17,28 @@ namespace TimejApi.Controllers
             _context = context;
         }
 
+        /// <summary>
+        /// [NOT IMPLEMENTED]
+        /// </summary>
         [HttpGet("{id}")]
         public async Task<ActionResult<Faculty>> Get(Guid id)
         {
             throw new NotImplementedException();
         }
 
+
+        /// <summary>
+        /// [IMPLEMENTED]
+        /// </summary>
         [HttpGet("all")]
         public async Task<ActionResult<Faculty[]>> GetAll()
         {
             return Ok(_context.Faculties.ToArray());
         }
 
+        /// <summary>
+        /// [IMPLEMENTED]
+        /// </summary>
         [HttpPost]
         // TODO: Add policy [Authorize(Policy = "SheduleModerator")]
         public async Task<ActionResult<Faculty>> Post(FacultyCreation faculty)
@@ -36,9 +46,11 @@ namespace TimejApi.Controllers
             var entry = _context.Faculties.Add(new Faculty(faculty.Name));
             await _context.SaveChangesAsync();
             return Ok(entry.Entity);
-            // throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// [NOT IMPLEMENTED]
+        /// </summary>
         [HttpPut("{id}")]
         // TODO: Add policy [Authorize(Policy = "SheduleModerator")]
         public async Task<ActionResult<Faculty>> Put(Guid id, FacultyCreation faculty)
@@ -46,9 +58,12 @@ namespace TimejApi.Controllers
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// [NOT IMPLEMENTED]
+        /// </summary>
         [HttpDelete("{id}")]
         // TODO: Add policy [Authorize(Policy = "SheduleModerator")]
-        public async Task Delete(Guid id)
+        public async Task<ActionResult> Delete(Guid id)
         {
             throw new NotImplementedException();
         }
