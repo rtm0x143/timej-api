@@ -94,7 +94,7 @@ namespace TimejApi.Services.Auth
 
         public string CreateRefreshTokenFor(JwtSecurityToken jwt)
         {
-            throw new NotImplementedException();
+            return "NotImplemented";
         }
     }
 }

@@ -28,8 +28,12 @@ namespace TimejApi.Services
         {
             byte[] salt = new byte[saltSize];
             RandomNumberGenerator.Create().GetBytes(salt);
-            return Convert.ToBase64String(
-                KeyDerivation.Pbkdf2(password, salt, KeyDerivationPrf.HMACSHA256, 100000, saltSize + hashSize));
+            byte[] hash = KeyDerivation.Pbkdf2(password, salt, KeyDerivationPrf.HMACSHA256, 10000, hashSize);
+            byte[] result = new byte[saltSize + hashSize];
+            Array.Copy(salt, result, saltSize);
+            Array.Copy(hash, 0, result, saltSize, hashSize);
+
+            return Convert.ToBase64String(result);
         }
 
         public string HashPassword(string password) => HashPassword(password, SaltSize, HashSize);
@@ -37,9 +41,14 @@ namespace TimejApi.Services
         public bool VerifyPassword(string password, string passwordHash, int saltSize, int hashSize)
         {
             var salt = new byte[saltSize];
-            Array.Copy(Convert.FromBase64String(passwordHash), salt, saltSize);
-            return password == Convert.ToBase64String(
-                KeyDerivation.Pbkdf2(password, salt, KeyDerivationPrf.HMACSHA256, 100000, saltSize + hashSize));
+            var hashedData = Convert.FromBase64String(passwordHash);
+            Array.Copy(hashedData, salt, saltSize);
+            var hashToCheck = KeyDerivation.Pbkdf2(password, salt, KeyDerivationPrf.HMACSHA256, 10000, hashSize);
+            for (int i = 0; i < hashSize; ++i)
+            {
+                if (hashedData[i + saltSize] != hashToCheck[i]) return false;
+            }
+            return true;
         }
 
         public bool VerifyPassword(string password, string passwordHash) => VerifyPassword(password, passwordHash, SaltSize, HashSize);

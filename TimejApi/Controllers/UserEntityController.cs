@@ -1,12 +1,11 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TimejApi.Data.Entities;
-using TimejApi.Data;
 using Mapster;
-using Microsoft.EntityFrameworkCore;
 using EntityFramework.Exceptions.Common;
 using TimejApi.Helpers;
-using TimejApi.Services;
+using TimejApi.Services.User;
+using UserRole = TimejApi.Data.Entities.User.Role;
 
 namespace TimejApi.Controllers
 {
@@ -14,15 +13,13 @@ namespace TimejApi.Controllers
     [Route("api/user")]
     public class UserEntityController : Controller
     {
-        private readonly ScheduleDbContext _context;
+        private readonly IUserService _userService;
         private readonly ILogger<UserEntityController> _logger;
-        private readonly IPasswordHasher _passwordHasher;
 
-        public UserEntityController(ScheduleDbContext context, ILogger<UserEntityController> logger, IPasswordHasher passwordHasher)
+        public UserEntityController(IUserService userService, ILogger<UserEntityController> logger)
         {
-            _context = context;
+            _userService = userService;
             _logger = logger;
-            _passwordHasher = passwordHasher;
         }
 
         /// <summary>
@@ -31,86 +28,109 @@ namespace TimejApi.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<UserPublicDto>> Get(Guid id)
         {
-            if (await _context.Users.FindAsync(id) is not User user)
+            if (await _userService.DbContext.Users.FindAsync(id) is not User user)
                 return NotFound();
-
             return Ok(user.Adapt<UserPublicDto>());
         }
 
-        private async Task<ActionResult<UserDto>> UpdateUserChecked(User user)
+        /// <summary>
+        /// Protected method to get User data
+        /// </summary>
+        /// <remarks>
+        /// Acceptable for owners and MODERATORs
+        /// </remarks>
+        [HttpGet("{id}/details")]
+        [Authorize]
+        public async Task<ActionResult<UserPublicDto>> GetDetails(Guid id)
         {
-            var newUserEntry = _context.Users.Update(user);
-            User.TryGatSubAsGuid(out var moderatorId);
+            if (!User.SubEqualsOrInRole(id, nameof(UserRole.MODERATOR))) return Forbid();
 
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (UniqueConstraintException)
-            {
-                _logger.LogWarning("Moderator ({}) tried to edit unknown user ({})", moderatorId, user.Id);
+            if (await _userService.DbContext.Users.FindAsync(id) is not User user)
                 return NotFound();
-            }
 
-            _logger.LogInformation("User ({}) has beed updated by Moderator ({})", user.Id, moderatorId);
-            return Ok(newUserEntry.Entity.Adapt<UserDto>());
+            return Ok(user.Adapt<UserDto>());
         }
+
 
         /// <summary>
         /// Edits user entity. Enable for MODERATOR or entity owner
         /// </summary>
+        /// <remarks>
+        /// Acceptable for MODERATORs
+        /// </remarks>
         [HttpPut("{id}")]
-        [Authorize(Roles = nameof(Data.Entities.User.Role.MODERATOR))]
-        public async Task<ActionResult<UserDto>> Put(Guid id, UserData data)
+        [Authorize(Roles = nameof(UserRole.MODERATOR))]
+        public async Task<ActionResult<UserDto>> Put(Guid id, UserRegister data)
         {
             var newUserModel = data.Adapt<User>();
             newUserModel.Id = id;
-
-            return await UpdateUserChecked(newUserModel);
-        }
-
-        [HttpPatch("{id}")]
-        [Authorize]
-        public async Task<ActionResult<UserDto>> Patch(Guid id, UserPublicData data)
-        {
-            if (!User.TryGatSubAsGuid(out var userId) || userId != id
-                || !User.IsInRole(nameof(Data.Entities.User.Role.MODERATOR))) return Forbid();
-
-            var newUserModel = data.Adapt<User>();
-            newUserModel.Id = id;
-
-            return await UpdateUserChecked(newUserModel);
-        }
-
-        /// <summary>
-        /// An method to create user by admin
-        /// </summary>
-        [HttpPost("register")]
-        [Authorize(Roles = nameof(Data.Entities.User.Role.MODERATOR))]
-        public async Task<ActionResult<UserDto>> RegisterUser(UserRegister user)
-        {
-            if (user.Group != null && !user.Roles.Contains(Data.Entities.User.Role.STUDENT))
-            {
-                return Problem(statusCode: StatusCodes.Status400BadRequest,
-                               detail: "User related to some Group should also have \"STUDENT\" role");
-            }
-
-            User.TryGatSubAsGuid(out var moderatorId);
+            User.TryGetSubAsGuid(out var moderatorId);
 
             try
             {
-                var userModel = user.Adapt<User>();
-                if (userModel.StudentGroup != null)
-                    _context.Groups.Entry(userModel.StudentGroup).State = EntityState.Unchanged;
-                userModel.PasswordHash = _passwordHasher.HashPassword(user.Password);
+                _userService.DbContext.Users.Update(newUserModel);
+                await _userService.DbContext.SaveChangesAsync();
+                _logger.LogInformation("User ({}) has beed updated by Moderator ({})", newUserModel.Id, moderatorId);
+                return newUserModel.Adapt<UserDto>();
+            }
+            catch (UniqueConstraintException exception)
+            {
+                _logger.LogWarning(exception, "Problem while Moderator ({}) tried to edit user ({})", moderatorId, newUserModel.Id);
+                return Conflict();
+            }
 
-                var entry = _context.Users.Add(userModel);
-                _context.SaveChanges();
+        }
 
-                _logger.LogInformation("New User ({}) with roles [{}] has been created by Moderator ({}).", 
-                    entry.Entity.Id, string.Join(", ", user.Roles), moderatorId);
+        /// <summary>
+        /// Edits some partional data;
+        /// </summary>
+        /// <remarks>
+        /// Acceptable for owners and MODERATORs
+        /// </remarks>
+        [HttpPatch("{id}")]
+        [Authorize]
+        public async Task<ActionResult<UserDto>> Patch(Guid id, UserEditDto data)
+        {
+            if (!User.TryGetSubAsGuid(out var callerId) || callerId != id
+                && !User.IsInRole(nameof(UserRole.MODERATOR))) return Forbid();
+            try
+            {
+                var user = await _userService.DbContext.Users.FindAsync(id);
+                if (user == null) return NotFound();
 
-                return Ok(entry.Entity.Adapt<UserDto>());
+                var newUserModel = await _userService.Edit(user, data);
+                _logger.LogInformation("User ({}) edited user ({})", callerId, newUserModel.Id);
+
+                return Ok(newUserModel.Adapt<UserDto>());
+            }
+            catch (UniqueConstraintException exception)
+            {
+                _logger.LogInformation(exception, "Occured while user ({}), tried to edit user ({})", callerId, id);
+                return Problem(statusCode: StatusCodes.Status409Conflict,
+                               title: "Cannot edit user",
+                               detail: "Seemed like some identifiers already in use");
+            }
+        }
+
+        /// <summary>
+        /// An method to register new user
+        /// </summary>
+        /// <remarks>
+        /// Acceptable for MODERATORs
+        /// </remarks>
+        [HttpPost("register")]
+        [Authorize(Roles = nameof(UserRole.MODERATOR))]
+        public async Task<ActionResult<UserDto>> RegisterUser(UserRegister userRegister)
+        {
+            User.TryGetSubAsGuid(out var moderatorId);
+
+            try
+            {
+                var newUser = await _userService.Register(userRegister);
+                _logger.LogInformation("New User ({}) with roles [{}] has been created by Moderator ({}).",
+                    newUser.Id, string.Join(", ", newUser.Roles), moderatorId);
+
+                return Ok(newUser.Adapt<UserDto>());
             }
             catch (UniqueConstraintException ex)
             {
