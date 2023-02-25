@@ -2,6 +2,7 @@ using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using TimejApi.Data.Dtos;
 using TimejApi.Data.Entities;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
@@ -24,14 +25,24 @@ public record UserPublicData
     public Gender Gender { get; set; }
 }
 
+public record UserEditDto(string Email);
+public record ChangePasswordDto(string OldPassword, string NewPassword);
+
 public record UserPublicDto(Guid Id) : UserPublicData;
 
-public record UserData : UserPublicData
+public record UserData : UserPublicData, IValidatableObject
 {
     public User.Role[] Roles { get; set; }
     public GroupDto? Group { get; set; }
-}
 
+    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    {
+        if (Group != null && !Roles.Contains(User.Role.STUDENT))
+        {
+            yield return new ValidationResult("User related to some Group should also have \"STUDENT\" role", new[] { nameof(Roles), nameof(Group) });
+        }
+    }
+}
 
 public record UserRegister : UserData
 {
