@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using TimejApi.Data;
@@ -11,9 +12,11 @@ using TimejApi.Data;
 namespace TimejApi.Migrations
 {
     [DbContext(typeof(ScheduleDbContext))]
-    partial class ScheduleDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230226143132_ChangedBuildingKey")]
+    partial class ChangedBuildingKey
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -53,7 +56,7 @@ namespace TimejApi.Migrations
                     b.Property<string>("Address")
                         .HasColumnType("text");
 
-                    b.Property<long?>("Number")
+                    b.Property<long>("Number")
                         .HasColumnType("bigint");
 
                     b.Property<string>("Title")

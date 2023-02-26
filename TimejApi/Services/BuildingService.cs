@@ -28,6 +28,7 @@ namespace TimejApi.Services
         public async Task<Building?> Edit(Guid buildingId, BuildingCreation building)
         {
             var result = await _context.Buildings.FindAsync(buildingId);
+            if (result == null) return null;
             result = building.Adapt(result);
             await _context.SaveChangesAsync();
             return result;
