@@ -19,7 +19,7 @@ workflow:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
       when: always
 
-    - if: $CI_COMMIT_BRANCH == "dev"
+    - if: $CI_COMMIT_BRANCH == "main"
       when: always
 
     - if: $CI_COMMIT_MESSAGE =~ /skip-ci/
@@ -72,9 +72,24 @@ deploy-db:
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
       when: manual
-    - if: $CI_COMMIT_BRANCH == "dev"
+    - if: $CI_COMMIT_BRANCH == "main"
       when: manual
     - when: never
+
+
+deploy-redis:
+  stage: deploy
+  extends:
+    - deploy-db
+
+  variables:
+    HELM_PATH: .helm/charts/redis
+    KUBE_NAMESPACE: $CI_PROJECT_NAME-static-$CI_COMMIT_BRANCH-redis
+
+  environment:
+    name: $CI_COMMIT_BRANCH-redis
+    url: $HOST
+    action: start
 
 
 deploy-review:
