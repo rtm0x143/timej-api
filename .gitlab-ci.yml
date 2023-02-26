@@ -111,7 +111,7 @@ chart-dry-run 1/3:
     - .chart-dry-run
 
   variables:
-    HELM_PATH: ./helm/charts/api
+    HELM_PATH: .helm/charts/api
 
 
 chart-dry-run 2/3:
@@ -119,7 +119,7 @@ chart-dry-run 2/3:
     - .chart-dry-run
 
   variables:
-    HELM_PATH: ./helm/charts/database
+    HELM_PATH: .helm/charts/database
 
 
 chart-dry-run 3/3:
@@ -127,4 +127,4 @@ chart-dry-run 3/3:
     - .chart-dry-run
 
   variables:
-    HELM_PATH: ./helm/charts/redis
+    HELM_PATH: .helm/charts/redis
