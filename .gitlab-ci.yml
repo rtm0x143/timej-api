@@ -106,6 +106,6 @@ deploy:
     - 'curl -i -H "Accept: application/json" -H "Content-Type:application/json" -X POST --data "{\"content\": \"${DISCORD_MESSAGE}\"}" $DISCORD_PROD_WEBHOOK'
 
 
-chart-validation 3/3:
+chart-validation:
   variables:
-    HELM_PATH: .helm/charts/api
+    HELM_SUB_PATH: .helm/charts/api
