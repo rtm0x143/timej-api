@@ -1,6 +1,7 @@
 ﻿using Mapster;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using TimejApi.Data;
 using TimejApi.Helpers.Types;
 using UserEntity = TimejApi.Data.Entities.User;
@@ -9,6 +10,7 @@ namespace TimejApi.Services.User
 {
     public interface IUserService : IDbContextWrap<ScheduleDbContext>
     {
+        public ValueTask<UserEntity> ChangeUser(Guid id, UserRegister userRegister);
         public ValueTask<UserEntity> Register(UserRegister userRegister);
         public ValueTask<UnsuredResult<UserEntity, ModelStateDictionary>> TryLogin(UserLogin userLogin);
         public ValueTask<bool> ChangePassword(UserEntity user, ChangePasswordDto change);
@@ -49,17 +51,22 @@ namespace TimejApi.Services.User
             return new(user);
         }
 
+        private EntityEntry<UserEntity> _translateUserRegister(UserRegister userRegister)
+        {
+            var entry = DbContext.Users.Entry(userRegister.Adapt<UserEntity>());
+            if (userRegister.Group != null)
+                entry.Reference(nameof(UserEntity.StudentGroup)).EntityEntry.State = EntityState.Unchanged;
+            entry.Entity.PasswordHash = _passwordHasher.HashPassword(userRegister.Password);
+            return entry;
+        }
+
         /// <summary>
         /// Creates new User entity from <see cref="UserRegister"/> Dto
         /// </summary>
         public async ValueTask<UserEntity> Register(UserRegister userRegister)
         {
-            var userModel = userRegister.Adapt<UserEntity>();
-            if (userModel.StudentGroup != null)
-                DbContext.Groups.Entry(userModel.StudentGroup).State = EntityState.Unchanged;
-            userModel.PasswordHash = _passwordHasher.HashPassword(userRegister.Password);
-
-            var entry = DbContext.Users.Add(userModel);
+            var entry = _translateUserRegister(userRegister);
+            entry.State = EntityState.Added;
             await DbContext.SaveChangesAsync();
 
             return entry.Entity;
@@ -82,6 +89,16 @@ namespace TimejApi.Services.User
             DbContext.Users.Update(newUserModel);
             await DbContext.SaveChangesAsync();
             return newUserModel;
+        }
+
+        public async ValueTask<UserEntity> ChangeUser(Guid id, UserRegister userRegister)
+        {
+            var entry = _translateUserRegister(userRegister);
+            entry.Entity.Id = id;
+            entry.State = EntityState.Modified;
+            await DbContext.SaveChangesAsync();
+
+            return entry.Entity;
         }
     }
 }

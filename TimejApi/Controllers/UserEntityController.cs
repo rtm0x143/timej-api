@@ -34,14 +34,31 @@ namespace TimejApi.Controllers
         }
 
         /// <summary>
+        /// Method to get data of current authorized user 
+        /// </summary>
+        /// <remarks>
+        /// Acceptable for any authorized user 
+        /// </remarks>
+        [HttpGet("details")]
+        [Authorize]
+        public async Task<ActionResult<UserDto>> GetDetails()
+        {
+            if (User.TryGetSubAsGuid(out var userId)) return BadRequest();
+
+            if (await _userService.DbContext.Users.FindAsync(userId) is not User user)
+                return NotFound();
+            return Ok(user.Adapt<UserPublicDto>());
+        }
+
+        /// <summary>
         /// Protected method to get User data
         /// </summary>
         /// <remarks>
         /// Acceptable for owners and MODERATORs
         /// </remarks>
-        [HttpGet("{id}/details")]
+        [HttpGet("details/{id}")]
         [Authorize]
-        public async Task<ActionResult<UserPublicDto>> GetDetails(Guid id)
+        public async Task<ActionResult<UserDto>> GetDetails(Guid id)
         {
             if (!User.SubEqualsOrInRole(id, nameof(UserRole.MODERATOR))) return Forbid();
 
@@ -53,7 +70,7 @@ namespace TimejApi.Controllers
 
 
         /// <summary>
-        /// Edits user entity. Enable for MODERATOR or entity owner
+        /// Edits user entity
         /// </summary>
         /// <remarks>
         /// Acceptable for MODERATORs
@@ -62,23 +79,18 @@ namespace TimejApi.Controllers
         [Authorize(Roles = nameof(UserRole.MODERATOR))]
         public async Task<ActionResult<UserDto>> Put(Guid id, UserRegister data)
         {
-            var newUserModel = data.Adapt<User>();
-            newUserModel.Id = id;
             User.TryGetSubAsGuid(out var moderatorId);
-
             try
             {
-                _userService.DbContext.Users.Update(newUserModel);
-                await _userService.DbContext.SaveChangesAsync();
+                var newUserModel = await _userService.ChangeUser(id, data);
                 _logger.LogInformation("User ({}) has beed updated by Moderator ({})", newUserModel.Id, moderatorId);
                 return newUserModel.Adapt<UserDto>();
             }
             catch (UniqueConstraintException exception)
             {
-                _logger.LogWarning(exception, "Problem while Moderator ({}) tried to edit user ({})", moderatorId, newUserModel.Id);
+                _logger.LogWarning(exception, "Problem while Moderator ({}) tried to edit user ({})", moderatorId, id);
                 return Conflict();
             }
-
         }
 
         /// <summary>
