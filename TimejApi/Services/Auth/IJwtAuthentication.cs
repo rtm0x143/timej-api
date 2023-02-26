@@ -12,5 +12,7 @@ namespace TimejApi.Services.Auth
         public string CreateRefreshTokenFor(JwtSecurityToken jwt);
         public TokenValidationParameters CreateValidationParameters();
         public bool ValidateToken(string token, [NotNullWhen(true)] out ClaimsPrincipal? claims);
+
+        public const string RoleClaimType = "role";
     }
 }

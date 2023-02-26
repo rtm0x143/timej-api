@@ -19,7 +19,8 @@ namespace TimejApi.Data.Mapping
                 .Map(dest => dest.Fullname, src => $"{src.Surname} {src.Name} {src.MiddleName}");
 
             TypeAdapterConfig<User, UserDto>.NewConfig()
-                .Map(dest => dest.Roles, src => src.Roles.Select(r => r.Role));
+                .Map(dest => dest.Roles, src => src.Roles.Select(r => r.Role))
+                .Map(dest => dest.Group, src => src.StudentGroup);
 
             TypeAdapterConfig<UserData, User>.NewConfig()
                 .Map(dest => dest.Roles, src => src.Roles.Select(r => new UserRole { Role = r }))

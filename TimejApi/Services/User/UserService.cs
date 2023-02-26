@@ -1,4 +1,5 @@
 ﻿using Mapster;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
@@ -10,11 +11,12 @@ namespace TimejApi.Services.User
 {
     public interface IUserService : IDbContextWrap<ScheduleDbContext>
     {
-        public ValueTask<UserEntity> ChangeUser(Guid id, UserRegister userRegister);
+        public ValueTask<UnsuredResult<UserEntity, ProblemDetails>> TryChangeUser(Guid id, UserRegister userRegister);
         public ValueTask<UserEntity> Register(UserRegister userRegister);
         public ValueTask<UnsuredResult<UserEntity, ModelStateDictionary>> TryLogin(UserLogin userLogin);
-        public ValueTask<bool> ChangePassword(UserEntity user, ChangePasswordDto change);
-        public ValueTask<UserEntity> Edit(UserEntity user, UserEditDto edit);
+        public ValueTask<UnsuredResult<UserEntity, ProblemDetails>> ChangePassword(Guid id, ChangePasswordDto change);
+        public ValueTask<UnsuredResult<UserEntity, ProblemDetails>> TryEdit(Guid id, UserEditDto edit);
+        public ValueTask<UserEntity?> TryGet(Guid id);
     }
 
     public class UserService : IUserService
@@ -32,7 +34,11 @@ namespace TimejApi.Services.User
 
         public async ValueTask<UnsuredResult<UserEntity, ModelStateDictionary>> TryLogin(UserLogin userLogin)
         {
-            var user = await DbContext.Users.FirstOrDefaultAsync(u => u.Email == userLogin.Email);
+            var user = await DbContext.Users
+                .Include(u => u.Roles)
+                .Include(u => u.StudentGroup)
+                .FirstOrDefaultAsync(u => u.Email == userLogin.Email);
+
             if (user == null)
             {
                 var state = new ModelStateDictionary();
@@ -55,7 +61,11 @@ namespace TimejApi.Services.User
         {
             var entry = DbContext.Users.Entry(userRegister.Adapt<UserEntity>());
             if (userRegister.Group != null)
-                entry.Reference(nameof(UserEntity.StudentGroup)).EntityEntry.State = EntityState.Unchanged;
+            {
+                var studentGroupEntry = entry.Reference(nameof(UserEntity.StudentGroup));
+                studentGroupEntry.EntityEntry.State = EntityState.Unchanged;
+                studentGroupEntry.Load();
+            }
             entry.Entity.PasswordHash = _passwordHasher.HashPassword(userRegister.Password);
             return entry;
         }
@@ -72,33 +82,54 @@ namespace TimejApi.Services.User
             return entry.Entity;
         }
 
-        public async ValueTask<bool> ChangePassword(UserEntity user, ChangePasswordDto change)
+        public async ValueTask<UnsuredResult<UserEntity, ProblemDetails>> ChangePassword(Guid userId, ChangePasswordDto change)
         {
+            var user = await TryGet(userId);
+            if (user == null)
+                return UnsuredDetailedResult.NotFound<UserEntity>();
+
             if (user.PasswordHash == null || !_passwordHasher.VerifyPassword(change.OldPassword, user.PasswordHash))
-                return false;
+                return new(new ProblemDetails() { Status = StatusCodes.Status403Forbidden, Title = "Incorrect password" });
 
-            var changedUser = user with { PasswordHash = _passwordHasher.HashPassword(change.NewPassword) };
-            DbContext.Users.Update(changedUser);
-            await DbContext.AddRangeAsync(changedUser);
-            return true;
-        }
-
-        public async ValueTask<UserEntity> Edit(UserEntity user, UserEditDto edit)
-        {
-            var newUserModel = user with { Email = edit.Email };
-            DbContext.Users.Update(newUserModel);
+            user.PasswordHash = _passwordHasher.HashPassword(change.NewPassword);
             await DbContext.SaveChangesAsync();
-            return newUserModel;
+            return new(user);
         }
 
-        public async ValueTask<UserEntity> ChangeUser(Guid id, UserRegister userRegister)
+        public async ValueTask<UnsuredResult<UserEntity, ProblemDetails>> TryEdit(Guid id, UserEditDto edit)
         {
-            var entry = _translateUserRegister(userRegister);
-            entry.Entity.Id = id;
-            entry.State = EntityState.Modified;
-            await DbContext.SaveChangesAsync();
+            var user = await DbContext.Users.FindAsync(id);
+            if (user == null) return UnsuredDetailedResult.NotFound<UserEntity>();
 
-            return entry.Entity;
+            user.Email = edit.Email;
+            await DbContext.SaveChangesAsync();
+            return new(user);
         }
+
+        public async ValueTask<UnsuredResult<UserEntity, ProblemDetails>> TryChangeUser(Guid id, UserRegister userRegister)
+        {
+            var user = await TryGet(id);
+            if (user == null) return UnsuredDetailedResult.NotFound<UserEntity>();
+
+            // Hugely frustrated that i should do that for EF; solution could be using specific Dto mapper            
+            user.Gender = userRegister.Gender;
+            user.Email = userRegister.Email;
+            user.MiddleName = userRegister.MiddleName;
+            user.Name = userRegister.Name;
+            user.Surname= userRegister.Surname;
+            user.PasswordHash = _passwordHasher.HashPassword(userRegister.Password);
+            
+            if (userRegister.Group?.Id != user.StudentGroup?.Id)
+                user.StudentGroup = userRegister.Group?.Adapt<Data.Entities.Group>();
+            
+            await DbContext.SaveChangesAsync();
+            return new(user);
+        }
+
+        public ValueTask<UserEntity?> TryGet(Guid id) => new(
+            DbContext.Users
+                .Include(u => u.Roles)
+                .Include(u => u.StudentGroup)
+                .FirstOrDefaultAsync(u => u.Id == id));
     }
 }

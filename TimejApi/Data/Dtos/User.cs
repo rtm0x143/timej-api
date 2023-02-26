@@ -28,7 +28,12 @@ public record UserPublicData
 public record UserEditDto(string Email);
 public record ChangePasswordDto(string OldPassword, string NewPassword);
 
-public record UserPublicDto(Guid Id) : UserPublicData;
+public record UserPublicDto : UserPublicData
+{
+    public Guid Id{ get; set; }
+    public UserPublicDto(Guid id) => Id = id;
+    public UserPublicDto() { }
+}
 
 public record UserData : UserPublicData, IValidatableObject
 {

@@ -11,7 +11,7 @@ namespace TimejApi.Controllers
 {
     [ApiController]
     [Route("api/user")]
-    public class UserEntityController : Controller
+    public class UserEntityController : ControllerBase
     {
         private readonly IUserService _userService;
         private readonly ILogger<UserEntityController> _logger;
@@ -43,11 +43,11 @@ namespace TimejApi.Controllers
         [Authorize]
         public async Task<ActionResult<UserDto>> GetDetails()
         {
-            if (User.TryGetSubAsGuid(out var userId)) return BadRequest();
+            if (!User.TryGetIdentifierAsGuid(out var userId)) return BadRequest();
 
-            if (await _userService.DbContext.Users.FindAsync(userId) is not User user)
+            if (await _userService.TryGet(userId) is not User user)
                 return NotFound();
-            return Ok(user.Adapt<UserPublicDto>());
+            return Ok(user.Adapt<UserDto>());
         }
 
         /// <summary>
@@ -60,14 +60,13 @@ namespace TimejApi.Controllers
         [Authorize]
         public async Task<ActionResult<UserDto>> GetDetails(Guid id)
         {
-            if (!User.SubEqualsOrInRole(id, nameof(UserRole.MODERATOR))) return Forbid();
+            if (!User.IdentifierEqualsOrInRole(id, nameof(UserRole.MODERATOR))) return Forbid();
 
-            if (await _userService.DbContext.Users.FindAsync(id) is not User user)
+            if (await _userService.TryGet(id) is not User user)
                 return NotFound();
 
             return Ok(user.Adapt<UserDto>());
         }
-
 
         /// <summary>
         /// Edits user entity
@@ -79,17 +78,21 @@ namespace TimejApi.Controllers
         [Authorize(Roles = nameof(UserRole.MODERATOR))]
         public async Task<ActionResult<UserDto>> Put(Guid id, UserRegister data)
         {
-            User.TryGetSubAsGuid(out var moderatorId);
+            User.TryGetIdentifierAsGuid(out var moderatorId);
             try
             {
-                var newUserModel = await _userService.ChangeUser(id, data);
-                _logger.LogInformation("User ({}) has beed updated by Moderator ({})", newUserModel.Id, moderatorId);
-                return newUserModel.Adapt<UserDto>();
+                if (!(await _userService.TryChangeUser(id, data)).Ensure(out var user, out var problem))
+                    return problem.ToActionResult();
+
+                _logger.LogInformation("User ({}) has beed updated by Moderator ({})", user.Id, moderatorId);
+                return user.Adapt<UserDto>();
             }
             catch (UniqueConstraintException exception)
             {
                 _logger.LogWarning(exception, "Problem while Moderator ({}) tried to edit user ({})", moderatorId, id);
-                return Conflict();
+                return Problem(statusCode: StatusCodes.Status409Conflict,
+                               title: "Cannot create user",
+                               detail: "Seemed like some identifiers already in use");
             }
         }
 
@@ -103,17 +106,16 @@ namespace TimejApi.Controllers
         [Authorize]
         public async Task<ActionResult<UserDto>> Patch(Guid id, UserEditDto data)
         {
-            if (!User.TryGetSubAsGuid(out var callerId) || callerId != id
+            if (!User.TryGetIdentifierAsGuid(out var callerId) || callerId != id
                 && !User.IsInRole(nameof(UserRole.MODERATOR))) return Forbid();
             try
             {
-                var user = await _userService.DbContext.Users.FindAsync(id);
-                if (user == null) return NotFound();
+                if (!(await _userService.TryEdit(id, data)).Ensure(out var user, out var problem))
+                    return problem.ToActionResult();
 
-                var newUserModel = await _userService.Edit(user, data);
-                _logger.LogInformation("User ({}) edited user ({})", callerId, newUserModel.Id);
+                _logger.LogInformation("User ({}) edited user ({})", callerId, user.Id);
 
-                return Ok(newUserModel.Adapt<UserDto>());
+                return Ok(user.Adapt<UserDto>());
             }
             catch (UniqueConstraintException exception)
             {
@@ -134,7 +136,7 @@ namespace TimejApi.Controllers
         [Authorize(Roles = nameof(UserRole.MODERATOR))]
         public async Task<ActionResult<UserDto>> RegisterUser(UserRegister userRegister)
         {
-            User.TryGetSubAsGuid(out var moderatorId);
+            User.TryGetIdentifierAsGuid(out var moderatorId);
 
             try
             {
@@ -150,6 +152,13 @@ namespace TimejApi.Controllers
                 return Problem(statusCode: StatusCodes.Status409Conflict,
                                title: "Cannot create user",
                                detail: "Seemed like some identifiers already in use");
+            }
+            catch (ReferenceConstraintException ex) 
+            {
+                _logger.LogTrace(ex, "While tring to create new User; by moderator ({})", moderatorId);
+                return Problem(statusCode: StatusCodes.Status400BadRequest,
+                               title: "Cannot create user",
+                               detail: "Seemed like you tring to reference unknown Group");
             }
         }
     }

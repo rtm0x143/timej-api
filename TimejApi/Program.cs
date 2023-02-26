@@ -10,11 +10,15 @@ using TimejApi.Helpers;
 using TimejApi.Services;
 using TimejApi.Services.Auth;
 using TimejApi.Services.Auth.Policies;
+using TimejApi.Services.User;
+using Microsoft.AspNetCore.Identity;
+using System.IdentityModel.Tokens.Jwt;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddSingleton<IJwtAuthentication, JwtAuthenticationService>();
 builder.Services.AddSingleton<IPasswordHasher, PasswordHasher>();
+builder.Services.AddScoped<IUserService, UserService>();
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -39,6 +43,12 @@ builder.Services.AddSwaggerGen(options =>
 {
     var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
     options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
+});
+
+builder.Services.Configure<IdentityOptions>(options =>
+{
+    options.ClaimsIdentity.UserIdClaimType = JwtRegisteredClaimNames.Sub;
+    options.ClaimsIdentity.RoleClaimType = IJwtAuthentication.RoleClaimType;
 });
 
 // Applies custom "Mapster" configuration
