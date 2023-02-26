@@ -6,6 +6,7 @@ include:
     file:
       - 'jobs/build.yml'
       - 'jobs/review.yml'
+      - 'jobs/test.yml'
       - 'jobs/security.yml'
       - 'jobs/env-cleaner.yml'
       - 'jobs/deploy.yml'
