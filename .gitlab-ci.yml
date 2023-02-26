@@ -104,3 +104,8 @@ deploy:
     - helm upgrade --set image=$IMAGE_NAME,host=$HOST,db_conn=$DB_CONNECTION_STRING --namespace $KUBE_NAMESPACE $KUBE_NAMESPACE $HELM_PATH --install --create-namespace
     - echo Application is up and available at $HOST
     - 'curl -i -H "Accept: application/json" -H "Content-Type:application/json" -X POST --data "{\"content\": \"${DISCORD_MESSAGE}\"}" $DISCORD_PROD_WEBHOOK'
+
+
+chart-validation 3/3:
+  variables:
+    HELM_PATH: .helm/charts/api
