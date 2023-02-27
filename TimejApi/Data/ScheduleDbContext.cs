@@ -19,6 +19,7 @@ namespace TimejApi.Data
         public DbSet<Subject> Subjects { get; set; }
         public DbSet<UserEditFacultyPermission> UserEditFacultyPermissions { get; set; }
         public DbSet<UserRole> UserRoles { get; set; }
+        public DbSet<AuthenticationModel> AuthenticationModels { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

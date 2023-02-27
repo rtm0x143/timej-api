@@ -2,7 +2,6 @@ using EntityFramework.Exceptions.PostgreSQL;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using TimejApi.Data.Entities;
-using System.Data.Common;
 using System.Reflection;
 using TimejApi.Data;
 using TimejApi.Data.Mapping;
@@ -18,6 +17,7 @@ using Microsoft.OpenApi.Models;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddSingleton<IJwtAuthentication, JwtAuthenticationService>();
+builder.Services.AddScoped<IRefreshTokenService, RefreshTokenService>();
 builder.Services.AddSingleton<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<IUserService, UserService>();
 
@@ -45,9 +45,9 @@ builder.Services.AddSwaggerGen(options =>
     var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
     options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
 
-    // TODO фильтрация по конкретным запросам 
-    // это костыльный метод, он ставит замочки на все, хоть это лишь визуально
-    // нашел здесь  https://stackoverflow.com/questions/43447688/setting-up-swagger-asp-net-core-using-the-authorization-headers-bearer
+    // TODO ���������� �� ���������� �������� 
+    // ��� ���������� �����, �� ������ ������� �� ���, ���� ��� ���� ���������
+    // ����� �����  https://stackoverflow.com/questions/43447688/setting-up-swagger-asp-net-core-using-the-authorization-headers-bearer
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         In = ParameterLocation.Header,
