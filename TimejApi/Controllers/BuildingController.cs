@@ -1,61 +1,106 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Diagnostics.CodeAnalysis;
 using TimejApi.Data.Entities;
 using TimejApi.Data.Dtos;
+using TimejApi.Services;
+using TimejApi.Data;
+using Microsoft.EntityFrameworkCore;
+using Mapster;
 
 namespace TimejApi.Controllers
 {
+
     [ApiController]
     [Route("api/building")]
     public class BuildingController : Controller
     {
-        /// <summary>
-        /// [NOT IMPLEMENTED]
-        /// </summary>
-        [HttpGet("{number}")]
-        public async Task<ActionResult<Building>> Get(uint number)
+
+        private readonly ScheduleDbContext _context;
+
+        public BuildingController(ScheduleDbContext context)
         {
-            throw new NotImplementedException();
+            _context = context;
         }
 
         /// <summary>
-        /// [NOT IMPLEMENTED]
+        /// Get all buildings
         /// </summary>
+        /// <response code="200"> Returns the building model by id</response>
+        /// <response code="404"> Building was not found </response>
+        [HttpGet("{buildingId}")]
+        public async Task<ActionResult<Building>> Get(Guid buildingId)
+        {
+            var building = await _context.Buildings.FindAsync(buildingId);
+            if (building == null)
+            {
+                return NotFound($"Building with id {buildingId} was not found");
+            }
+            return Ok(building);
+
+        }
+
+        /// <summary>
+        /// Returns all buildings from the entire database
+        /// </summary>
+        /// <response code="200"> Returns the building models</response>
         [HttpGet("all")]
         public async Task<ActionResult<Building[]>> GetAll()
         {
-            throw new NotImplementedException();
+            return Ok(await _context.Buildings.ToArrayAsync());
         }
 
         /// <summary>
-        /// [NOT IMPLEMENTED]
+        /// Creates new building in a database
         /// </summary>
+        /// <response code="200"> Returns the newly created building</response>
+        /// <response code="403"> If not Moderator </response>
+        /// <response code="401"> Not authorized </response>
         [HttpPost]
-        // TODO: Add policy [Authorize(Policy = "SheduleModerator")]
+        [Authorize(Roles = nameof(Data.Entities.User.Role.MODERATOR))]
         public async Task<ActionResult<Building>> Post(BuildingCreation building)
         {
-            throw new NotImplementedException();
+            var result = building.Adapt<Building>();
+            await _context.Buildings.AddAsync(result);
+            await _context.SaveChangesAsync();
+            return Ok(result);
         }
 
         /// <summary>
-        /// [NOT IMPLEMENTED]
+        /// Edits new building in a database
         /// </summary>
-        [HttpPut("{number}")]
-        // TODO: Add policy [Authorize(Policy = "SheduleModerator")]
-        public async Task<ActionResult<LessonDto>> Put(uint number, BuildingCreation building)
+        /// <response code="200"> Returns the edited building</response>
+        /// <response code="404"> Building was not found </response>
+        /// <response code="403"> If not Moderator </response>
+        /// <response code="401"> Not authorized </response>
+        [HttpPut("{buildingId}")]
+        [Authorize(Roles = nameof(Data.Entities.User.Role.MODERATOR))]
+        public async Task<ActionResult<Building>> Put(Guid buildingId, BuildingCreation building)
         {
-            throw new NotImplementedException();
+            var result = await _context.Buildings.FindAsync(buildingId);
+            result = building.Adapt(result);
+            await _context.SaveChangesAsync();
+            if (result == null)
+            {
+                return NotFound($"Building with id {buildingId} was not found");
+            }
+            return Ok(result);
         }
 
         /// <summary>
-        /// [NOT IMPLEMENTED]
+        /// Deletes the building if it exists
         /// </summary>
-        [HttpDelete("{number}")]
-        // TODO: Add policy [Authorize(Policy = "SheduleModerator")]
-        public async Task<ActionResult> Delete(uint number)
+        /// <response code="200"> Deletes the building</response>
+        /// <response code="404"> Building was not found </response>
+        /// <response code="403"> If not Moderator </response>
+        /// <response code="401"> Not authorized </response>
+        [HttpDelete("{buildingId}")]
+        [Authorize(Roles = nameof(Data.Entities.User.Role.MODERATOR))]
+        public async Task<ActionResult> Delete(Guid buildingId)
         {
-            throw new NotImplementedException();
+            var result = await _context.Buildings.Where(x => x.Id == buildingId).ExecuteDeleteAsync();
+            if(result>0)
+                return Ok();
+            return NotFound($"Building with id {buildingId} was not found");
         }
     }
 }

@@ -9,6 +9,7 @@ using TimejApi.Helpers;
 using TimejApi.Services;
 using TimejApi.Services.Auth;
 using TimejApi.Services.Auth.Policies;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -37,6 +38,33 @@ builder.Services.AddSwaggerGen(options =>
 {
     var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
     options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
+
+    // TODO фильтрация по конкретным запросам 
+    // это костыльный метод, он ставит замочки на все, хоть это лишь визуально
+    // нашел здесь  https://stackoverflow.com/questions/43447688/setting-up-swagger-asp-net-core-using-the-authorization-headers-bearer
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        In = ParameterLocation.Header,
+        Description = "Please enter a valid token for authentification",
+        Name = "Auth",
+        Type = SecuritySchemeType.Http,
+        BearerFormat = "JWT",
+        Scheme = "Bearer"
+    });
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type=ReferenceType.SecurityScheme,
+                    Id="Bearer"
+                }
+            },
+            new string[] {}
+        }
+    });
 });
 
 // Applies custom "Mapster" configuration

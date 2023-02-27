@@ -5,12 +5,11 @@ using System.Text.Json.Serialization;
 
 namespace TimejApi.Data.Entities
 {
-    [PrimaryKey(nameof(AuditoryNumber), nameof(BuildingNumber))]
     public record Auditory
     {
+        public Guid Id { get; set; }
         public uint AuditoryNumber { get; set; }
-        [ForeignKey(nameof(Building))]
-        public uint BuildingNumber { get; set; }
+        public string? Title { get; set; }
         [JsonIgnore]
         public Building Building { get; set; }
     }
