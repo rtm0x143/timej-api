@@ -9,6 +9,9 @@ dependencies:
   - name: TimeJ-DB
     version: 0.0.1
     condition: db.enabled
+  - name: TimeJ-Redis
+    version: 0.0.1
+    condition: redis.enabled
 maintainers:
   - name: Oleg Batrakov
     email: oleg.cortuzz1@gmail.com
