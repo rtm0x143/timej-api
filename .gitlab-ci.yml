@@ -128,3 +128,14 @@ chart-dry-run 3/3:
 
   variables:
     HELM_PATH: .helm/charts/redis
+
+
+build-test-image:
+  allow_failure: true
+
+  extends:
+    - build-image
+  variables:
+    DOCKERFILE_PATH: .
+    IMAGE_NAME: $REGISTRY_LOGIN/$CI_PROJECT_NAME:test-$CI_COMMIT_SHORT_SHA
+

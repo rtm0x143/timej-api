@@ -111,12 +111,7 @@ namespace TimejApi.Services.User
             var user = await TryGet(id);
             if (user == null) return UnsuredDetailedResult.NotFound<UserEntity>();
 
-            // Hugely frustrated that i should do that for EF; solution could be using specific Dto mapper            
-            user.Gender = userRegister.Gender;
-            user.Email = userRegister.Email;
-            user.MiddleName = userRegister.MiddleName;
-            user.Name = userRegister.Name;
-            user.Surname= userRegister.Surname;
+            userRegister.Adapt(user);
             user.PasswordHash = _passwordHasher.HashPassword(userRegister.Password);
             
             if (userRegister.Group?.Id != user.StudentGroup?.Id)

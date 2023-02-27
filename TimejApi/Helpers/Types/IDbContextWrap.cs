@@ -7,7 +7,7 @@ namespace TimejApi.Helpers.Types
         public DbContext DbContext { get; }
     }
 
-    public interface IDbContextWrap<TContext> : IDbContextWrap
+    public interface IDbContextWrap<TContext> : IDbContextWrap where TContext : DbContext
     {
         public new TContext DbContext { get; }
     }

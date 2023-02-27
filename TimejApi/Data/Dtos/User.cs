@@ -46,6 +46,10 @@ public record UserData : UserPublicData, IValidatableObject
         {
             yield return new ValidationResult("User related to some Group should also have \"STUDENT\" role", new[] { nameof(Roles), nameof(Group) });
         }
+        else if (Roles.Contains(User.Role.STUDENT) && Group == null)
+        {
+            yield return new ValidationResult("User with have \"STUDENT\" role should be related to some Group", new[] { nameof(Roles), nameof(Group) });
+        }
     }
 }
 

@@ -22,6 +22,11 @@ namespace TimejApi.Data.Mapping
                 .Map(dest => dest.Roles, src => src.Roles.Select(r => r.Role))
                 .Map(dest => dest.Group, src => src.StudentGroup);
 
+
+            TypeAdapterConfig<UserDto, User>.NewConfig()
+                .Map(dest => dest.Roles, src => src.Roles.Select(r => new UserRole() { UserId = src.Id, Role = r }))
+                .Map(dest => dest.StudentGroup, src => src.Group);
+
             TypeAdapterConfig<UserData, User>.NewConfig()
                 .Map(dest => dest.Roles, src => src.Roles.Select(r => new UserRole { Role = r }))
                 .Ignore(u => u.AllowedFaculties!);
