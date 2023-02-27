@@ -45,9 +45,9 @@ builder.Services.AddSwaggerGen(options =>
     var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
     options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
 
-    // TODO ���������� �� ���������� �������� 
-    // ��� ���������� �����, �� ������ ������� �� ���, ���� ��� ���� ���������
-    // ����� �����  https://stackoverflow.com/questions/43447688/setting-up-swagger-asp-net-core-using-the-authorization-headers-bearer
+    // TODO фильтрация по конкретным запросам 
+    // это костыльный метод, он ставит замочки на все, хоть это лишь визуально
+    // нашел здесь  https://stackoverflow.com/questions/43447688/setting-up-swagger-asp-net-core-using-the-authorization-headers-bearer
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         In = ParameterLocation.Header,
