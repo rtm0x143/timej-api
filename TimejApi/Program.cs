@@ -1,3 +1,4 @@
+using EntityFramework.Exceptions.PostgreSQL;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using TimejApi.Data.Entities;
@@ -9,11 +10,16 @@ using TimejApi.Helpers;
 using TimejApi.Services;
 using TimejApi.Services.Auth;
 using TimejApi.Services.Auth.Policies;
+using TimejApi.Services.User;
+using Microsoft.AspNetCore.Identity;
+using System.IdentityModel.Tokens.Jwt;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddSingleton<IJwtAuthentication, JwtAuthenticationService>();
+builder.Services.AddSingleton<IPasswordHasher, PasswordHasher>();
+builder.Services.AddScoped<IUserService, UserService>();
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -67,11 +73,21 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
+builder.Services.Configure<IdentityOptions>(options =>
+{
+    options.ClaimsIdentity.UserIdClaimType = JwtRegisteredClaimNames.Sub;
+    options.ClaimsIdentity.RoleClaimType = IJwtAuthentication.RoleClaimType;
+});
+
 // Applies custom "Mapster" configuration
 MappingConfig.Apply();
 
 var connectionString = builder.GetConnectionString();
-builder.Services.AddDbContext<ScheduleDbContext>(options => options.UseNpgsql(connectionString));
+builder.Services.AddDbContext<ScheduleDbContext>(options =>
+{
+    options.UseNpgsql(connectionString);
+    options.UseExceptionProcessor();
+});
 
 var app = builder.Build();
 

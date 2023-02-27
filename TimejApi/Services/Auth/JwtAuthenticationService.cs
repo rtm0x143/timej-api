@@ -44,18 +44,18 @@ namespace TimejApi.Services.Auth
         }
 
         /// <exception cref="ArgumentNullException">When Configuration is invalid</exception>
-        public string BuildToken(IEnumerable<Claim> claims)
+        public JwtSecurityToken BuildToken(IEnumerable<Claim> claims)
         {
             _extractConfigProps(out var appId, out var signKey, out var lifeTime);
 
             var token = new JwtSecurityToken(
                 issuer: appId,
                 audience: appId,
-                claims: claims,
+                claims: claims.Append(new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())),
                 expires: DateTime.UtcNow.Add(lifeTime),
                 signingCredentials: new SigningCredentials(signKey, SecurityAlgorithms.HmacSha256));
-
-            return new JwtSecurityTokenHandler().WriteToken(token);
+            
+            return token;
         }
 
         public TokenValidationParameters CreateValidationParameters()
@@ -88,6 +88,13 @@ namespace TimejApi.Services.Auth
             }
 
             return claims != null;
+        }
+
+        public string WriteToken(JwtSecurityToken token) => new JwtSecurityTokenHandler().WriteToken(token);
+
+        public string CreateRefreshTokenFor(JwtSecurityToken jwt)
+        {
+            return "NotImplemented";
         }
     }
 }
