@@ -14,7 +14,6 @@ using Microsoft.OpenApi.Models;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddSingleton<IJwtAuthentication, JwtAuthenticationService>();
-builder.Services.AddScoped<IBuilding, BuildingService>();
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

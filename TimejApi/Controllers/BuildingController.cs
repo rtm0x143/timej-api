@@ -3,6 +3,9 @@ using Microsoft.AspNetCore.Mvc;
 using TimejApi.Data.Entities;
 using TimejApi.Data.Dtos;
 using TimejApi.Services;
+using TimejApi.Data;
+using Microsoft.EntityFrameworkCore;
+using Mapster;
 
 namespace TimejApi.Controllers
 {
@@ -12,11 +15,11 @@ namespace TimejApi.Controllers
     public class BuildingController : Controller
     {
 
-        private readonly IBuilding _buildingService;
+        private readonly ScheduleDbContext _context;
 
-        public BuildingController(IBuilding buildingService)
+        public BuildingController(ScheduleDbContext context)
         {
-            _buildingService = buildingService;
+            _context = context;
         }
 
         /// <summary>
@@ -27,12 +30,13 @@ namespace TimejApi.Controllers
         [HttpGet("{buildingId}")]
         public async Task<ActionResult<Building>> Get(Guid buildingId)
         {
-            var building = await _buildingService.Get(buildingId);
+            var building = await _context.Buildings.FindAsync(buildingId);
             if (building == null)
             {
                 return NotFound($"Building with id {buildingId} was not found");
             }
             return Ok(building);
+
         }
 
         /// <summary>
@@ -42,7 +46,7 @@ namespace TimejApi.Controllers
         [HttpGet("all")]
         public async Task<ActionResult<Building[]>> GetAll()
         {
-            return await _buildingService.GetAll();
+            return Ok(await _context.Buildings.ToArrayAsync());
         }
 
         /// <summary>
@@ -52,10 +56,13 @@ namespace TimejApi.Controllers
         /// <response code="403"> If not Moderator </response>
         /// <response code="401"> Not authorized </response>
         [HttpPost]
-        //[Authorize(Roles = nameof(Data.Entities.User.Role.MODERATOR))]
+        [Authorize(Roles = nameof(Data.Entities.User.Role.MODERATOR))]
         public async Task<ActionResult<Building>> Post(BuildingCreation building)
         {
-            return Ok(await _buildingService.Create(building));
+            var result = building.Adapt<Building>();
+            await _context.Buildings.AddAsync(result);
+            await _context.SaveChangesAsync();
+            return Ok(result);
         }
 
         /// <summary>
@@ -66,10 +73,12 @@ namespace TimejApi.Controllers
         /// <response code="403"> If not Moderator </response>
         /// <response code="401"> Not authorized </response>
         [HttpPut("{buildingId}")]
-        //[Authorize(Roles = nameof(Data.Entities.User.Role.MODERATOR))]
+        [Authorize(Roles = nameof(Data.Entities.User.Role.MODERATOR))]
         public async Task<ActionResult<Building>> Put(Guid buildingId, BuildingCreation building)
         {
-            var result = await _buildingService.Edit(buildingId, building);
+            var result = await _context.Buildings.FindAsync(buildingId);
+            result = building.Adapt(result);
+            await _context.SaveChangesAsync();
             if (result == null)
             {
                 return NotFound($"Building with id {buildingId} was not found");
@@ -81,14 +90,17 @@ namespace TimejApi.Controllers
         /// Deletes the building if it exists
         /// </summary>
         /// <response code="200"> Deletes the building</response>
+        /// <response code="404"> Building was not found </response>
         /// <response code="403"> If not Moderator </response>
         /// <response code="401"> Not authorized </response>
         [HttpDelete("{buildingId}")]
-        //[Authorize(Roles = nameof(Data.Entities.User.Role.MODERATOR))]
+        [Authorize(Roles = nameof(Data.Entities.User.Role.MODERATOR))]
         public async Task<ActionResult> Delete(Guid buildingId)
         {
-            await _buildingService.DeleteIfExists(buildingId);
-            return Ok();
+            var result = await _context.Buildings.Where(x => x.Id == buildingId).ExecuteDeleteAsync();
+            if(result>0)
+                return Ok();
+            return NotFound($"Building with id {buildingId} was not found");
         }
     }
 }
