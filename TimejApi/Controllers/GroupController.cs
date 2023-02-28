@@ -17,7 +17,7 @@ namespace TimejApi.Controllers
         /// Get all groups related to that Faculty
         /// </summary>
         [HttpGet]
-        public Task<Action<GroupDto[]>> GetAll(Guid facultyId)
+        public Task<ActionResult<GroupDto[]>> GetAll(Guid facultyId)
         {
             throw new NotImplementedException();
         }
@@ -26,7 +26,7 @@ namespace TimejApi.Controllers
         /// Get concrete Group
         /// </summary>
         [HttpGet("{id}")]
-        public Task<Action<GroupDto>> Get(Guid facultyId, Guid id)
+        public Task<ActionResult<GroupDto>> Get(Guid facultyId, Guid id)
         {
             throw new NotImplementedException();
         }
@@ -39,7 +39,7 @@ namespace TimejApi.Controllers
         /// </remarks>
         [HttpPost]
         [Authorize(Roles = nameof(UserRole.MODERATOR))]
-        public Task<Action<GroupDto>> Post(Guid facultyId, GroupCreaton group)
+        public Task<ActionResult<GroupDto>> Post(Guid facultyId, GroupCreaton group)
         {
             throw new NotImplementedException();
         }
@@ -52,7 +52,7 @@ namespace TimejApi.Controllers
         /// </remarks>
         [HttpPut("{id}")]
         [Authorize(Roles = nameof(UserRole.MODERATOR))]
-        public Task<Action<GroupDto>> Put(Guid facultyId, Guid id, GroupCreaton group)
+        public Task<ActionResult<GroupDto>> Put(Guid facultyId, Guid id, GroupCreaton group)
         {
             throw new NotImplementedException();
         }
