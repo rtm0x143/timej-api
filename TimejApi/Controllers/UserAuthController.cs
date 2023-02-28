@@ -48,6 +48,9 @@ namespace TimejApi.Controllers
         [HttpPost("refresh")]
         public async Task<ActionResult<AuthResult>> Refresh(AuthResult auth)
         {
+            if (!new JwtSecurityTokenHandler().CanReadToken(auth.AccessToken))
+                return BadRequest(nameof(auth.AccessToken));
+
             var jwt = new JwtSecurityToken(auth.AccessToken);
             if (!Guid.TryParse(jwt.Subject, out var userId)) return BadRequest();
 
