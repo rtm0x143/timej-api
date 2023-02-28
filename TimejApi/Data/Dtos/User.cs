@@ -68,6 +68,6 @@ public record UserDto : UserData
     public UserDto() { }
 }
 
-public record AuthResult(string Token, string RefreshToken);
+public record AuthResult(string AccessToken, string RefreshToken);
 
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.

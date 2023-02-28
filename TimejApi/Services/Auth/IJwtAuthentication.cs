@@ -9,7 +9,6 @@ namespace TimejApi.Services.Auth
     {
         public JwtSecurityToken BuildToken(IEnumerable<Claim> claims);
         public string WriteToken(JwtSecurityToken token);
-        public string CreateRefreshTokenFor(JwtSecurityToken jwt);
         public TokenValidationParameters CreateValidationParameters();
         public bool ValidateToken(string token, [NotNullWhen(true)] out ClaimsPrincipal? claims);
 

@@ -1,4 +1,4 @@
-using Mapster;
+﻿using Mapster;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.EntityFrameworkCore;
@@ -113,6 +113,9 @@ namespace TimejApi.Services.User
 
             userRegister.Adapt(user);
             user.PasswordHash = _passwordHasher.HashPassword(userRegister.Password);
+            
+            if (userRegister.Group?.Id != user.StudentGroup?.Id)
+                user.StudentGroup = userRegister.Group?.Adapt<Data.Entities.Group>();
             
             await DbContext.SaveChangesAsync();
             return new(user);
