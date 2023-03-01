@@ -5,7 +5,10 @@ using Mapster;
 using EntityFramework.Exceptions.Common;
 using TimejApi.Helpers;
 using TimejApi.Services.User;
+using UserEntity = TimejApi.Data.Entities.User;
 using UserRole = TimejApi.Data.Entities.User.Role;
+using System.ComponentModel.DataAnnotations;
+using Microsoft.EntityFrameworkCore;
 
 namespace TimejApi.Controllers
 {
@@ -153,13 +156,38 @@ namespace TimejApi.Controllers
                                title: "Cannot create user",
                                detail: "Seemed like some identifiers already in use");
             }
-            catch (ReferenceConstraintException ex) 
+            catch (ReferenceConstraintException ex)
             {
                 _logger.LogTrace(ex, "While tring to create new User; by moderator ({})", moderatorId);
                 return Problem(statusCode: StatusCodes.Status400BadRequest,
                                title: "Cannot create user",
                                detail: "Seemed like you tring to reference unknown Group");
             }
+        }
+
+        /// <summary>
+        /// Get filtered collection of users
+        /// </summary>
+        /// <param name="groupId">Filter by group</param>
+        /// <param name="email">Get concrete user by email</param>
+        /// <param name="teacher">Filter by by teacher role</param>
+        /// <response code="404">When no filters were specified</response>
+        [HttpGet]
+        [Authorize(Roles = $"{nameof(UserRole.SCHEDULE_EDITOR)},{nameof(UserRole.MODERATOR)}")]
+        public async Task<ActionResult<UserDto[]>> QueryUsers(
+            [FromQuery] Guid? groupId,
+            [FromQuery][EmailAddress] string? email,
+            [FromQuery] bool teacher = false)
+        {
+            if (groupId == null && email == null && !teacher) 
+                return Problem(statusCode: StatusCodes.Status400BadRequest,
+                               title: "Invalid query",
+                               detail: "No filtering variables were specified");
+
+            var users = await _userService
+                .QueryUsers(groupId, email, teacher ? UserRole.TEACHER : null);
+
+            return users.Adapt<UserDto[]>();
         }
     }
 }

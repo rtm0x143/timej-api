@@ -4,21 +4,13 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using TimejApi.Data;
+using TimejApi.Data.Dtos;
+using TimejApi.Data.Entities;
 using TimejApi.Helpers.Types;
 using UserEntity = TimejApi.Data.Entities.User;
 
 namespace TimejApi.Services.User
 {
-    public interface IUserService : IDbContextWrap<ScheduleDbContext>
-    {
-        public ValueTask<UnsuredResult<UserEntity, ProblemDetails>> TryChangeUser(Guid id, UserRegister userRegister);
-        public ValueTask<UserEntity> Register(UserRegister userRegister);
-        public ValueTask<UnsuredResult<UserEntity, ModelStateDictionary>> TryLogin(UserLogin userLogin);
-        public ValueTask<UnsuredResult<UserEntity, ProblemDetails>> ChangePassword(Guid id, ChangePasswordDto change);
-        public ValueTask<UnsuredResult<UserEntity, ProblemDetails>> TryEdit(Guid id, UserEditDto edit);
-        public ValueTask<UserEntity?> TryGet(Guid id);
-    }
-
     public class UserService : IUserService
     {
         private readonly IPasswordHasher _passwordHasher;
@@ -46,7 +38,7 @@ namespace TimejApi.Services.User
                 return new(state);
             }
 
-            if (user.PasswordHash == null 
+            if (user.PasswordHash == null
                 || !_passwordHasher.VerifyPassword(userLogin.Password, user.PasswordHash))
             {
                 var state = new ModelStateDictionary();
@@ -113,18 +105,27 @@ namespace TimejApi.Services.User
 
             userRegister.Adapt(user);
             user.PasswordHash = _passwordHasher.HashPassword(userRegister.Password);
-            
+
             if (userRegister.Group?.Id != user.StudentGroup?.Id)
                 user.StudentGroup = userRegister.Group?.Adapt<Data.Entities.Group>();
-            
+
             await DbContext.SaveChangesAsync();
             return new(user);
         }
 
         public ValueTask<UserEntity?> TryGet(Guid id) => new(
             DbContext.Users
-                .Include(u => u.Roles)
-                .Include(u => u.StudentGroup)
+                .Include(nameof(UserEntity.Roles))
+                .Include(nameof(UserEntity.StudentGroup))
                 .FirstOrDefaultAsync(u => u.Id == id));
+
+        public ValueTask<UserEntity[]> QueryUsers(Guid? groupId = null, string? email = null, UserEntity.Role? role = null) => new(
+            DbContext.Users
+                .Include(nameof(UserEntity.Roles))
+                .Include(nameof(UserEntity.StudentGroup))
+                .Where(u => (email == null || u.Email == email)
+                            && (groupId == null || u.StudentGroup != null && u.StudentGroup.Id == groupId)
+                            && (role == null || u.Roles.FirstOrDefault(userRole => userRole.Role == role) != null))
+                .ToArrayAsync());
     }
 }
