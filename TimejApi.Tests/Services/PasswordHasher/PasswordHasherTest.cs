@@ -52,9 +52,11 @@ public class PasswordHasherTest
     
     [Theory]
     [InlineData(DefaultPassword)] [InlineData(HashedDefaultPassword)] [InlineData(SymbolicPassword1)] [InlineData("")]
-    public void HashPassword_ZeroSaltSizeFails(string password)
+    public void HashPassword_HashesForSamePasswordsWithZeroSaltEquals(string password)
     {
-        Assert.Throws<Exception>(() => _hasher.HashPassword(password, 0, 20));
+        var hash1 = _hasher.HashPassword(password, 0, 20);
+        var hash2 = _hasher.HashPassword(password, 0, 20);
+        Assert.Equal(hash1, hash2);
     }
 
     [Theory]

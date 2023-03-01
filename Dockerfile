@@ -22,8 +22,9 @@ COPY ${SOLUTION_NAME}.sln .
 COPY ${PROJECT_NAME}/${PROJECT_NAME}.csproj ${PROJECT_NAME}/${PROJECT_NAME}.csproj
 COPY ${TEST_PROJECT_NAME}/${TEST_PROJECT_NAME}.csproj ${TEST_PROJECT_NAME}/${TEST_PROJECT_NAME}.csproj
 
-RUN ls /src
-RUN ls /src/TimejApi -l
+WORKDIR /src/${TEST_PROJECT_NAME}
+RUN dotnet add package JunitXml.TestLogger --version 3.0.124
+WORKDIR /src
 RUN dotnet restore
 COPY . .
 RUN dotnet build ${TEST_PROJECT_NAME}/${TEST_PROJECT_NAME}.csproj -c ${BUILD_TYPE} -o /app
@@ -37,4 +38,4 @@ ENV PROJECT_ENTRYPOINT=${TEST_PROJECT_NAME}
 
 WORKDIR /app
 COPY --from=build /app .
-ENTRYPOINT dotnet test ${PROJECT_ENTRYPOINT}.dll
+ENTRYPOINT dotnet test --logger:junit ${PROJECT_ENTRYPOINT}.dll

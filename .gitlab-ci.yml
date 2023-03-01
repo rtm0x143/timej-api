@@ -130,12 +130,27 @@ chart-dry-run 3/3:
     HELM_PATH: .helm/charts/redis
 
 
-build-test-image:
+unit-test:
+  stage: test
+  image: mcr.microsoft.com/dotnet/sdk:7.0-alpine3.16-amd64
+  tags:
+    - standalone-docker
   allow_failure: true
-
-  extends:
+  needs:
     - build-image
-  variables:
-    DOCKERFILE_PATH: .
-    IMAGE_NAME: $REGISTRY_LOGIN/$CI_PROJECT_NAME:test-$CI_COMMIT_SHORT_SHA
+
+  script:
+    - dotnet test --logger:"junit;LogFilePath=test.xml"
+
+
+  artifacts:
+    reports:
+      junit:
+        - "TimejApi.Tests/test.xml"
+
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+    - if: $CI_COMMIT_MESSAGE =~ /run-unit-test/
+    - if: $CI_COMMIT_MESSAGE =~ /run-all-test/
+    - when: never
 
