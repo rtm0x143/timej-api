@@ -25,4 +25,4 @@ public record LessonCreation(DateOnly Date, uint LessonNumber, Guid LessonId,
 public record BuildingCreation(uint Number, string Title, string? Address);
 public record AuditoryCreation(Guid BuildingId, uint Number, string? Title);
 public record FacultyCreation(string Name);
-public record SubjectCreation(uint Name);
+public record SubjectCreation(string Name);
