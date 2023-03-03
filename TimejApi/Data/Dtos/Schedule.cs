@@ -23,6 +23,6 @@ public record LessonCreation(DateOnly Date, uint LessonNumber, Guid LessonId,
     Guid SubjectId, LessonGroupDto[] Groups, Guid TeacherId);
 
 public record BuildingCreation(uint Number, string Title, string? Address);
-public record AuditoryCreation(Guid BuildingId, uint Number, string? Title);
+public record AuditoryCreation(Guid BuildingId, uint AuditoryNumber, string? Title);
 public record FacultyCreation(string Name);
 public record SubjectCreation(string Name);
