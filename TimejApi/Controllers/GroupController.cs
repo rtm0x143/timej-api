@@ -34,11 +34,11 @@ namespace TimejApi.Controllers
         /// Get concrete Group
         /// </summary>
         [HttpGet("api/group/{id}")]
-        public async Task<ActionResult<GroupDto>> Get(Guid id)
+        public async Task<ActionResult<Group>> Get(Guid id)
         {
             var group = await _context.Groups.FindAsync(id);
             if (group == null) return NotFound();
-            return Ok(group.Adapt<GroupDto>());
+            return Ok(group);
         }
 
         /// <summary>

@@ -9,7 +9,13 @@ namespace TimejApi.Services.Auth
         /// <summary>
         /// Unvalidates refresh token 
         /// </summary>
-        public ValueTask Revoke(string refreshToken);
+        /// <returns>True if revoke succeeded, False otherwise</returns>
+        public ValueTask<bool> Revoke(string refreshToken);
+        /// <summary>
+        /// Unvalidates refresh token by associated access token Id
+        /// </summary>
+        /// <returns>True if revoke succeeded, False otherwise</returns>
+        public ValueTask<bool> RevokeByAccessToken(Guid associatedAccessTokenId);
         /// <summary>
         /// Validates token and revokes it if succeeded
         /// </summary>
@@ -20,6 +26,6 @@ namespace TimejApi.Services.Auth
         /// </summary>
         public ValueTask RevokeAll(Guid userId);
 
-        public ValueTask<string> CreateRefreshTokenFor(Guid userId);
+        public ValueTask<string> CreateRefreshTokenFor(Guid userId, Guid associatedAccessTokenId);
     }
 }

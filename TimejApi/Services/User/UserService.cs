@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.EntityFrameworkCore.Storage;
+using System.Diagnostics;
 using TimejApi.Data;
 using TimejApi.Data.Dtos;
 using TimejApi.Data.Entities;
@@ -11,8 +13,11 @@ using UserEntity = TimejApi.Data.Entities.User;
 
 namespace TimejApi.Services.User
 {
+    [DebuggerDisplay("{_rndId}")]
     public class UserService : IUserService
     {
+        private int _rndId = Random.Shared.Next();
+
         private readonly IPasswordHasher _passwordHasher;
 
         public ScheduleDbContext DbContext { get; private init; }
@@ -127,5 +132,32 @@ namespace TimejApi.Services.User
                             && (groupId == null || u.StudentGroup != null && u.StudentGroup.Id == groupId)
                             && (role == null || u.Roles.FirstOrDefault(userRole => userRole.Role == role) != null))
                 .ToArrayAsync());
+
+        public async ValueTask<UnsuredResult<IEnumerable<Faculty>, Exception>> TryGrantEditPermission(Guid userId, Guid facultyId)
+        {
+            var user = await DbContext.Users.Include(nameof(UserEntity.AllowedFaculties))
+                .FirstOrDefaultAsync(u => u.Id == userId);
+
+            if (user == null) return new(new KeyNotFoundException(nameof(userId)));
+
+            if ((await DbContext.Faculties.FindAsync(facultyId)) is not Faculty faculty) 
+                return new(new KeyNotFoundException(nameof(facultyId)));
+
+            if (user.AllowedFaculties!.FirstOrDefault(af => af.Id == facultyId) != null)
+                return new(new ArgumentException("That relation already exist"));
+
+            user.AllowedFaculties!.Add(faculty);
+            await DbContext.SaveChangesAsync();
+            return new(user.AllowedFaculties);
+        }
+
+        public async ValueTask<UnsuredResult<UserEditFacultyPermission, Exception>> RevokeEditPermission(Guid userId, Guid facultyId)
+        {
+            var perm = await DbContext.UserEditFacultyPermissions.FindAsync(userId, facultyId);
+            if (perm == null) return new(new KeyNotFoundException());
+            DbContext.UserEditFacultyPermissions.Remove(perm);
+            await DbContext.SaveChangesAsync();
+            return new(perm);
+        }
     }
 }
