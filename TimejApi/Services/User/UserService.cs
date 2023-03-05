@@ -1,10 +1,9 @@
-﻿using Mapster;
+using Mapster;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Storage;
-using System.Diagnostics;
 using TimejApi.Data;
 using TimejApi.Data.Dtos;
 using TimejApi.Data.Entities;
@@ -13,11 +12,8 @@ using UserEntity = TimejApi.Data.Entities.User;
 
 namespace TimejApi.Services.User
 {
-    [DebuggerDisplay("{_rndId}")]
     public class UserService : IUserService
     {
-        private int _rndId = Random.Shared.Next();
-
         private readonly IPasswordHasher _passwordHasher;
 
         public ScheduleDbContext DbContext { get; private init; }
