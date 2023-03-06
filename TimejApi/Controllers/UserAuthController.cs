@@ -94,10 +94,10 @@ namespace TimejApi.Controllers
 
             return _refresh.RevokeByAccessToken(accessId).AsTask()
                 .ContinueWith<ActionResult>(t => t.Result
-                    ? Problem(statusCode: StatusCodes.Status404NotFound,
+                    ? NoContent()
+                    : Problem(statusCode: StatusCodes.Status404NotFound,
                               title: "Related refresh token not found",
-                              detail: "It seems like related refresh token has been alreary used or revoked")
-                    : NoContent());
+                              detail: "It seems like related refresh token has been alreary used or revoked"));
         }
 
         /// <summary>
