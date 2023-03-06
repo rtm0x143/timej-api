@@ -19,7 +19,7 @@ namespace TimejApi.Services.Auth
             _config = config;
         }
 
-        public ValueTask<string> CreateRefreshTokenFor(Guid userId)
+        public ValueTask<string> CreateRefreshTokenFor(Guid userId, Guid associatedAccessTokenId)
         {
             if (_config["RefreshToken:LifeTime"] is not string lifeTimeString
                || !TimeSpan.TryParse(lifeTimeString, out var lifeTime))
@@ -30,6 +30,7 @@ namespace TimejApi.Services.Auth
 
             var auth = new AuthenticationModel()
             {
+                AssociatedAccessTokenId= associatedAccessTokenId,
                 RefreshTokenId = Guid.NewGuid(),
                 RefreshTokenExpiration = DateTime.UtcNow + lifeTime,
                 UserId = userId
@@ -50,16 +51,17 @@ namespace TimejApi.Services.Auth
             return model.RefreshTokenExpiration > DateTime.UtcNow;
         }
 
-        protected ValueTask _revoke(Guid tokenId)
+        protected Task<bool> _revoke(Guid tokenId)
         {
-            _context.AuthenticationModels.Remove(new AuthenticationModel { RefreshTokenId = tokenId });
-            return new(_context.SaveChangesAsync());
+            return _context.AuthenticationModels.Where(am => am.RefreshTokenId == tokenId)
+                .ExecuteDeleteAsync()
+                .ContinueWith(t => t.Result != 0);
         }
 
         public async ValueTask<bool> ValidateToken(string refreshToken) =>
             await _validateToken(new Guid(Convert.FromBase64String(refreshToken)));
 
-        public ValueTask Revoke(string refreshToken) => _revoke(new Guid(Convert.FromBase64String(refreshToken)));
+        public ValueTask<bool> Revoke(string refreshToken) => new(_revoke(new Guid(Convert.FromBase64String(refreshToken))));
 
         public async ValueTask<bool> UseRefreshToken(string refreshToken)
         {
@@ -71,5 +73,10 @@ namespace TimejApi.Services.Auth
 
         public ValueTask RevokeAll(Guid userId) => new(
             _context.AuthenticationModels.Where(m => m.UserId == userId).ExecuteDeleteAsync());
+
+        public ValueTask<bool> RevokeByAccessToken(Guid associatedAccessTokenId) => new(
+            _context.AuthenticationModels.Where(am => am.AssociatedAccessTokenId == associatedAccessTokenId)
+                .ExecuteDeleteAsync()
+                .ContinueWith(t => t.Result != 0));
     }
 }

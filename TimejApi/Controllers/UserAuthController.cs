@@ -1,5 +1,8 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using TimejApi.Helpers;
 using TimejApi.Services.Auth;
 using TimejApi.Services.User;
 
@@ -14,7 +17,7 @@ namespace TimejApi.Controllers
         private readonly IUserService _userService;
         private readonly ILogger<UserAuthController> _logger;
 
-        public UserAuthController(IJwtAuthentication jwtAuthentication, IRefreshTokenService refresh, 
+        public UserAuthController(IJwtAuthentication jwtAuthentication, IRefreshTokenService refresh,
             IUserService userService, ILogger<UserAuthController> logger)
         {
             _jwtAuthentication = jwtAuthentication;
@@ -34,7 +37,8 @@ namespace TimejApi.Controllers
                 return ValidationProblem(statusCode: StatusCodes.Status401Unauthorized, modelStateDictionary: errors);
 
             var jwt = _jwtAuthentication.BuildToken(user.CreateClaims());
-            var result = new AuthResult(_jwtAuthentication.WriteToken(jwt), await _refresh.CreateRefreshTokenFor(user.Id));
+            var result = new AuthResult(_jwtAuthentication.WriteToken(jwt),
+                                        await _refresh.CreateRefreshTokenFor(user.Id, Guid.Parse(jwt.Id)));
             _logger.LogInformation("Built JWT ({}) and Refresh token for User ({})", jwt.Id, user.Id);
             return Ok(result);
         }
@@ -52,9 +56,10 @@ namespace TimejApi.Controllers
                 return BadRequest(nameof(auth.AccessToken));
 
             var jwt = new JwtSecurityToken(auth.AccessToken);
-            if (!Guid.TryParse(jwt.Subject, out var userId)) return BadRequest();
+            if (!Guid.TryParse(jwt.Subject, out var userId)
+                || !Guid.TryParse(jwt.Id, out var accessId)) return BadRequest();
 
-            if (! await _refresh.UseRefreshToken(auth.RefreshToken))
+            if (!await _refresh.UseRefreshToken(auth.RefreshToken))
             {
                 await _refresh.RevokeAll(userId);
                 return Problem(statusCode: StatusCodes.Status401Unauthorized,
@@ -69,8 +74,47 @@ namespace TimejApi.Controllers
 
             var newJwt = _jwtAuthentication.BuildToken(user.CreateClaims());
             return Ok(new AuthResult(_jwtAuthentication.WriteToken(newJwt),
-                await _refresh.CreateRefreshTokenFor(user.Id)));
+                await _refresh.CreateRefreshTokenFor(user.Id, accessId)));
         }
 
+        /// <summary>
+        /// Revokes refresh token, related to current access token
+        /// </summary>
+        /// <response code="400">When access token is invalid</response>
+        /// <response code="401">Not authorized</response>
+        /// <response code="404">When active refresh token related to your access token not found</response>
+        [HttpDelete("logout")]
+        [Authorize]
+        public Task<ActionResult> Logout()
+        {
+            if (User.FindFirstValue(JwtRegisteredClaimNames.Jti) is not string Jti
+                || !Guid.TryParse(Jti, out var accessId))
+                return Task.FromResult<ActionResult>(
+                    Problem(statusCode: StatusCodes.Status400BadRequest, title: "Access token invalid"));
+
+            return _refresh.RevokeByAccessToken(accessId).AsTask()
+                .ContinueWith<ActionResult>(t => t.Result
+                    ? NoContent()
+                    : Problem(statusCode: StatusCodes.Status404NotFound,
+                              title: "Related refresh token not found",
+                              detail: "It seems like related refresh token has been alreary used or revoked"));
+        }
+
+        /// <summary>
+        /// Revokes all refresh token, related to caller's user
+        /// </summary>
+        /// <response code="400">When access token is invalid</response>
+        /// <response code="401">Not authorized</response>
+        /// <response code="204">When deletion succeeded</response>
+        [HttpDelete("logout/all")]
+        [Authorize]
+        public Task<ActionResult> LogoutAll()
+        {
+            if (!User.TryGetIdentifierAsGuid(out var userId))
+                return Task.FromResult<ActionResult>(BadRequest());
+
+            return _refresh.RevokeAll(userId).AsTask()
+                .ContinueWith<ActionResult>(t => NoContent());
+        }
     }
 }
