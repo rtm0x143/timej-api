@@ -31,10 +31,10 @@ namespace TimejApi.Services
             return lessons.Select(x => x.Adapt<LessonDto>()).ToArray();
         }
 
-        public async Task<LessonDto[]> Get(DateOnly beginDate, DateOnly endDate, Guid? groupNumber, Guid? teacherId, uint? buildingNumber, uint? auditoryNumber, bool isOnline)
+        public async Task<LessonDto[]> Get(DateOnly beginDate, DateOnly endDate, Guid? groupNumber, Guid? teacherId, Guid? buildingId, uint? auditoryNumber, bool isOnline)
         {
             var querry = new LessonQuerry(_dbContext.Lessons);
-            return await querry.SpecifyDate(beginDate, endDate).SpecifyGroup(groupNumber).SpecifyPlace(auditoryNumber, buildingNumber, isOnline)
+            return await querry.SpecifyDate(beginDate, endDate).SpecifyGroup(groupNumber).SpecifyPlace(auditoryNumber, buildingId, isOnline)
                 .SpecifyTeacher(teacherId).Get().Select(x => x.Adapt<LessonDto>()).ToArrayAsync();
         }
 
@@ -123,19 +123,19 @@ namespace TimejApi.Services
             return this;
         }
 
-        public LessonQuerry SpecifyPlace(uint? auditoryNumber, uint? buildingNumber, bool isOnline)
+        public LessonQuerry SpecifyPlace(uint? auditoryNumber, Guid? buildingId, bool isOnline)
         {
             if (isOnline)
             {
                 _lessons = _lessons.Where(x => x.Auditory == null);
                 return this;
             }
-            if (auditoryNumber is null && buildingNumber is null) return this;
-            if (auditoryNumber is null || buildingNumber is null)
+            if (auditoryNumber is null && buildingId is null) return this;
+            if (auditoryNumber is null || buildingId is null)
             {
-                throw new ArgumentNullException("Both or none of auditoryNumber and buildingNumber must be specified");
+                throw new ArgumentNullException("Both or none of auditoryNumber and buildingId must be specified");
             }
-            _lessons = _lessons.Where(x => x.Auditory != null && x.Auditory.BuildingNumber == buildingNumber && x.Auditory.AuditoryNumber == auditoryNumber);
+            _lessons = _lessons.Where(x => x.Auditory != null && x.Auditory.BuildingId == buildingId && x.Auditory.AuditoryNumber == auditoryNumber);
             return this;
         }
     }

@@ -1,50 +1,91 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Mapster;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using TimejApi.Data;
 using TimejApi.Data.Dtos;
 using TimejApi.Data.Entities;
+using UserRoles = TimejApi.Data.Entities.User.Role;
 
 namespace TimejApi.Controllers
 {
-    [Route("api/building/{buildingNumber}/auditory")]
     [ApiController]
     public class AuditoryController : ControllerBase
     {
-        /// <summary>
-        /// [NOT IMPLEMENTED]
-        /// </summary>
-        [HttpGet("all")]
-        public async Task<ActionResult<Auditory[]>> GetAll(uint buildingNumber)
+        private readonly ScheduleDbContext _context;
+
+        public AuditoryController(ScheduleDbContext context)
         {
-            throw new NotImplementedException();
+            _context = context;
         }
 
         /// <summary>
-        /// [NOT IMPLEMENTED]
+        /// Get all Auditories related to specified building
         /// </summary>
-        [HttpPut("{number}")]
-        // TODO: Add policy [Authorize(Policy = "SheduleModerator")]
-        public async Task<ActionResult<Auditory>> Put(uint number, AuditoryCreation auditory)
+        [HttpGet("api/building/{buildingId}/auditory/all")]
+        public Task<Auditory[]> GetAll(Guid buildingId)
         {
-            throw new NotImplementedException();
+            return _context.Auditories.Where(a => a.Building.Id == buildingId)
+                .ToArrayAsync();
         }
 
         /// <summary>
-        /// [NOT IMPLEMENTED]
+        /// Get concrete Auditory 
         /// </summary>
-        [HttpPost]
-        // TODO: Add policy [Authorize(Policy = "SheduleModerator")]
-        public async Task<ActionResult<Auditory>> Post(AuditoryCreation auditory)
+        /// <response code="404">Not found</response>
+        [HttpGet("api/auditory/{auditoryId}")]
+        public Task<ActionResult<Auditory>> Get(Guid auditoryId)
         {
-            throw new NotImplementedException();
+            return _context.Auditories.FindAsync(auditoryId).AsTask()
+                .ContinueWith<ActionResult<Auditory>>(t => t.Result == null ? NotFound() : Ok(t.Result));
         }
 
         /// <summary>
-        /// [NOT IMPLEMENTED]
+        /// Update Auditory entity
         /// </summary>
-        [HttpDelete("{number}")]
-        // TODO: Add policy [Authorize(Policy = "SheduleModerator")]
-        public async Task<ActionResult> Delete(uint number)
+        /// <response code="404">Not found</response>
+        /// <response code="401">Not authorized</response>
+        /// <response code="403">When caller is not MODERATOR</response>
+        [HttpPut("api/auditory/{auditoryId}")]
+        [Authorize(Roles = $"{nameof(UserRoles.MODERATOR)}")]
+        public async Task<ActionResult<Auditory>> Put(Guid auditoryId, AuditoryCreation auditoryCreation)
         {
-            throw new NotImplementedException();
+            var auditory = await _context.Auditories.FindAsync(auditoryId);
+            if (auditory == null) return NotFound();
+
+            var entry = _context.Auditories.Update(auditoryCreation.Adapt(auditory));;
+            await _context.SaveChangesAsync();
+            return entry.Entity;
+        }
+
+        /// <summary>
+        /// Create new Auditory entity
+        /// </summary>
+        /// <response code="401">Not authorized</response>
+        /// <response code="403">When caller is not MODERATOR</response>
+        [HttpPost("api/auditory")]
+        [Authorize(Roles = $"{nameof(UserRoles.MODERATOR)}")]
+        public Task<ActionResult<Auditory>> Post(AuditoryCreation auditory)
+        {
+            var entry = _context.Auditories.Add(auditory.Adapt<Auditory>());
+            return _context.SaveChangesAsync()
+                .ContinueWith<ActionResult<Auditory>>(t => Ok(entry.Entity));
+        }
+
+        /// <summary>
+        /// Deletes Auditory entity
+        /// </summary>
+        /// <response code="401">Not authorized</response>
+        /// <response code="403">When caller is not MODERATOR</response>
+        /// <response code="404">When "auditoryId" is unknown</response>
+        /// <responce code="204">If succeeded</responce>
+        [HttpDelete("api/auditory{auditoryId}")]
+        [Authorize(Policy = "SheduleModerator")]
+        public Task<ActionResult> Delete(Guid auditoryId)
+        {
+            return _context.Auditories.Where(a => a.Id == auditoryId)
+                .ExecuteDeleteAsync()
+                .ContinueWith<ActionResult>(t => t.Result == 0 ? NotFound() : NoContent());
         }
 
     }

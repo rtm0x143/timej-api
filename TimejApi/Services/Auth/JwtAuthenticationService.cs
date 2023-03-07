@@ -11,10 +11,10 @@ namespace TimejApi.Services.Auth
     /// </summary>
     public class JwtAuthenticationService : IJwtAuthentication
     {
-        private readonly IConfiguration _config;
-        private readonly ILogger<JwtAuthenticationService>? _logger;
-
         public static TimeSpan FallbackTokenLifeTime { get; set; } = TimeSpan.FromHours(1);
+
+        protected readonly IConfiguration _config;
+        protected readonly ILogger<JwtAuthenticationService>? _logger;
 
         public JwtAuthenticationService(IConfiguration config, ILogger<JwtAuthenticationService>? logger)
         {
@@ -22,7 +22,7 @@ namespace TimejApi.Services.Auth
             _logger = logger;
         }
 
-        private void _extractConfigProps(out string appId, out SecurityKey signKey)
+        protected void _extractConfigProps(out string appId, out SecurityKey signKey)
         {
             appId = _config["ApplicationId"]
                 ?? throw new ArgumentNullException("Configuration's prop 'Jwt:ApplicationId' was Null");
@@ -31,7 +31,7 @@ namespace TimejApi.Services.Auth
                 ?? throw new ArgumentNullException("Configuration's prop 'Jwt:SigningKey' was Null")));
         }
 
-        private void _extractConfigProps(out string appId, out SecurityKey signKey, out TimeSpan lifeTime)
+        protected void _extractConfigProps(out string appId, out SecurityKey signKey, out TimeSpan lifeTime)
         {
             if (_config["Jwt:LifeTime"] is not string lifeTimeStr ||
                 !TimeSpan.TryParse(lifeTimeStr, out lifeTime))
@@ -39,23 +39,23 @@ namespace TimejApi.Services.Auth
                 lifeTime = FallbackTokenLifeTime;
                 _logger?.LogWarning("Configuration doesn't contain 'Jwt:LifeTime' prop or it is invalid");
             }
-
+            
             _extractConfigProps(out appId, out signKey);
         }
 
         /// <exception cref="ArgumentNullException">When Configuration is invalid</exception>
-        public string BuildToken(IEnumerable<Claim> claims)
+        public JwtSecurityToken BuildToken(IEnumerable<Claim> claims)
         {
             _extractConfigProps(out var appId, out var signKey, out var lifeTime);
 
             var token = new JwtSecurityToken(
                 issuer: appId,
                 audience: appId,
-                claims: claims,
+                claims: claims.Append(new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())),
                 expires: DateTime.UtcNow.Add(lifeTime),
                 signingCredentials: new SigningCredentials(signKey, SecurityAlgorithms.HmacSha256));
-
-            return new JwtSecurityTokenHandler().WriteToken(token);
+            
+            return token;
         }
 
         public TokenValidationParameters CreateValidationParameters()
@@ -89,5 +89,7 @@ namespace TimejApi.Services.Auth
 
             return claims != null;
         }
+
+        public string WriteToken(JwtSecurityToken token) => new JwtSecurityTokenHandler().WriteToken(token);
     }
 }

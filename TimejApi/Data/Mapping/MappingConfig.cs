@@ -1,4 +1,5 @@
 using Mapster;
+using Microsoft.AspNetCore.Routing.Constraints;
 using TimejApi.Data.Dtos;
 using TimejApi.Data.Entities;
 
@@ -18,7 +19,13 @@ namespace TimejApi.Data.Mapping
                 .Map(dest => dest.Fullname, src => $"{src.Surname} {src.Name} {src.MiddleName}");
 
             TypeAdapterConfig<User, UserDto>.NewConfig()
-                .Map(dest => dest.Roles, src => src.Roles.Select(r => r.Role));
+                .Map(dest => dest.Roles, src => src.Roles.Select(r => r.Role))
+                .Map(dest => dest.Group, src => src.StudentGroup);
+
+
+            TypeAdapterConfig<UserDto, User>.NewConfig()
+                .Map(dest => dest.Roles, src => src.Roles.Select(r => new UserRole() { UserId = src.Id, Role = r }))
+                .Map(dest => dest.StudentGroup, src => src.Group);
 
             TypeAdapterConfig<UserData, User>.NewConfig()
                 .Map(dest => dest.Roles, src => src.Roles.Select(r => new UserRole { Role = r }))
@@ -29,7 +36,7 @@ namespace TimejApi.Data.Mapping
                 .Ignore(u => u.StudentGroup!.Lessons!)
                 .Ignore(u => u.StudentGroup!.Faculty)
                 .Map(dest => dest.Roles, src => src.Roles.Select(r => new UserRole() { Role = r }))
-                .Map(dest => dest.StudentGroup, src => src.Group != null ? new Group() { GroupNumber = src.Group.GroupNumber } : null);
+                .Map(dest => dest.StudentGroup, src => src.Group);
 
         }
     }

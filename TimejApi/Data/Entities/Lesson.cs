@@ -17,7 +17,7 @@ namespace TimejApi.Data.Entities
         Seventh
     }
     [Index(nameof(Date), nameof(Number), nameof(TeacherId), IsUnique = true)]
-    [Index(nameof(Date), nameof(Number), nameof(AuditoryNumber), nameof(AuditoryBuilding), IsUnique = true)]
+    [Index(nameof(Date), nameof(Number), nameof(AuditoryId), IsUnique = true)]
     [Index(nameof(ReplicaId))]
     public record Lesson
     {
@@ -32,10 +32,9 @@ namespace TimejApi.Data.Entities
         [ForeignKey(nameof(Teacher))]
         public Guid TeacherId { get; set; }
         // If audotory is null then lesson is Online
-        [ForeignKey($"{nameof(AuditoryBuilding)},{nameof(AuditoryNumber)}")]
         public Auditory? Auditory { get; set; }
-        public uint AuditoryNumber { get; set; }
-        public uint AuditoryBuilding { get; set; }
+        [ForeignKey(nameof(Auditory))]
+        public Guid? AuditoryId { get; set; }
         public ICollection<LessonGroup> AttendingGroups { get; set; }
 
     }

@@ -1,6 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Mapster;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using TimejApi.Data;
 using TimejApi.Data.Dtos;
 using TimejApi.Data.Entities;
+using UserRoles = TimejApi.Data.Entities.User.Role;
 
 namespace TimejApi.Controllers
 {
@@ -8,52 +13,76 @@ namespace TimejApi.Controllers
     [ApiController]
     public class SubjectController : ControllerBase
     {
+        private readonly ScheduleDbContext _context;
+
+        public SubjectController(ScheduleDbContext context)
+        {
+            _context = context;
+        }
+
         /// <summary>
-        /// [NOT IMPLEMENTED]
+        /// Get concrete Subjetc
         /// </summary>
+        /// <response code="404">When id is unknown</response>
         [HttpGet("{id}")]
         public async Task<ActionResult<Subject>> Get(Guid id)
         {
-            throw new NotImplementedException();
+            var sub = await _context.Subjects.FindAsync(id);
+            if (sub == null) return NotFound();
+            return Ok(sub);
         }
 
         /// <summary>
-        /// [NOT IMPLEMENTED]
+        /// Get all existing Subjects 
         /// </summary>
         [HttpGet("all")]
-        public async Task<ActionResult<Subject[]>> GetAll()
+        public Task<Subject[]> GetAll()
         {
-            throw new NotImplementedException();
+            return _context.Subjects.ToArrayAsync();
         }
 
         /// <summary>
-        /// [NOT IMPLEMENTED]
+        /// Create new Subject 
         /// </summary>
+        /// <response code="401">Not authorized</response>
+        /// <response code="403">Caller has not MODERATOR, not EDITOR role</response>
         [HttpPost]
-        // TODO: Add policy [Authorize(Policy = "SheduleEditor")]
-        public async Task<ActionResult<Subject>> Post(SubjectCreation subject)
+        [Authorize(Roles = $"{nameof(UserRoles.MODERATOR)},{nameof(UserRoles.SCHEDULE_EDITOR)}")]
+        public Task<Subject> Post(SubjectCreation subject)
         {
-            throw new NotImplementedException();
+            var entry = _context.Subjects.Add(subject.Adapt<Subject>());
+            return _context.SaveChangesAsync().ContinueWith(t => entry.Entity);
         }
 
         /// <summary>
-        /// [NOT IMPLEMENTED]
+        /// Create new Subject 
         /// </summary>
+        /// <response code="401">Not authorized</response>
+        /// <response code="403">Caller has not MODERATOR, not EDITOR role</response>
         [HttpPut("{id}")]
-        // TODO: Add policy [Authorize(Policy = "SheduleEditor")]
-        public async Task<ActionResult<Subject>> Put(Guid id, SubjectCreation subject)
+        [Authorize(Roles = $"{nameof(UserRoles.MODERATOR)},{nameof(UserRoles.SCHEDULE_EDITOR)}")]
+        public async Task<ActionResult<Subject>> Put(Guid id, SubjectCreation subjectCreation)
         {
-            throw new NotImplementedException();
+            var subject = await _context.Subjects.FindAsync(id);
+            if (subject == null) return NotFound();
+            var entry = _context.Subjects.Update(subjectCreation.Adapt(subject));
+            await _context.SaveChangesAsync();
+            return entry.Entity;
         }
 
         /// <summary>
-        /// [NOT IMPLEMENTED]
+        /// Create new Subject 
         /// </summary>
+        /// <response code="401">Not authorized</response>
+        /// <response code="403">Caller has not MODERATOR, not EDITOR role</response>
+        /// <response code="204">When deletion succeeded</response>
         [HttpDelete("{id}")]
-        // TODO: Add policy [Authorize(Policy = "SheduleEditor")]
-        public async Task<ActionResult> Delete(Guid id)
+        [Authorize(Roles = $"{nameof(UserRoles.MODERATOR)},{nameof(UserRoles.SCHEDULE_EDITOR)}")]
+        public Task<ActionResult> Delete(Guid id)
         {
-            throw new NotImplementedException();
+            return _context.Subjects.Where(s => s.Id == id)
+                .ExecuteDeleteAsync()
+                .ContinueWith<ActionResult>(t => t.Result == 0 ? NotFound() : NoContent());
         }
     }
 }

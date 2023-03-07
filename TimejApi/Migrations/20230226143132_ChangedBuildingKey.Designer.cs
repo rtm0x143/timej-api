@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using TimejApi.Data;
@@ -11,9 +12,11 @@ using TimejApi.Data;
 namespace TimejApi.Migrations
 {
     [DbContext(typeof(ScheduleDbContext))]
-    partial class ScheduleDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230226143132_ChangedBuildingKey")]
+    partial class ChangedBuildingKey
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -41,35 +44,7 @@ namespace TimejApi.Migrations
 
                     b.HasIndex("BuildingId");
 
-                    b.HasIndex("AuditoryNumber", "BuildingId")
-                        .IsUnique();
-
                     b.ToTable("Auditories");
-                });
-
-            modelBuilder.Entity("TimejApi.Data.Entities.AuthenticationModel", b =>
-                {
-                    b.Property<Guid>("RefreshTokenId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("AssociatedAccessTokenId")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("RefreshTokenExpiration")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("RefreshTokenId");
-
-                    b.HasIndex("AssociatedAccessTokenId")
-                        .IsUnique();
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("AuthenticationModels");
                 });
 
             modelBuilder.Entity("TimejApi.Data.Entities.Building", b =>
@@ -81,7 +56,7 @@ namespace TimejApi.Migrations
                     b.Property<string>("Address")
                         .HasColumnType("text");
 
-                    b.Property<long?>("Number")
+                    b.Property<long>("Number")
                         .HasColumnType("bigint");
 
                     b.Property<string>("Title")
@@ -121,8 +96,7 @@ namespace TimejApi.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("FacultyId", "GroupNumber")
-                        .IsUnique();
+                    b.HasIndex("FacultyId");
 
                     b.ToTable("Groups");
                 });
@@ -133,11 +107,8 @@ namespace TimejApi.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<long?>("AuditoryBuildingNumber")
-                        .HasColumnType("bigint");
-
-                    b.Property<long?>("AuditoryNumber")
-                        .HasColumnType("bigint");
+                    b.Property<Guid?>("AuditoryId")
+                        .HasColumnType("uuid");
 
                     b.Property<DateOnly>("Date")
                         .HasColumnType("date");
@@ -147,9 +118,6 @@ namespace TimejApi.Migrations
 
                     b.Property<int>("Number")
                         .HasColumnType("integer");
-
-                    b.Property<Guid>("ReplicaId")
-                        .HasColumnType("uuid");
 
                     b.Property<Guid>("SubjectId")
                         .HasColumnType("uuid");
@@ -163,13 +131,9 @@ namespace TimejApi.Migrations
 
                     b.HasIndex("LessonTypeId");
 
-                    b.HasIndex("ReplicaId");
-
                     b.HasIndex("SubjectId");
 
                     b.HasIndex("TeacherId");
-
-                    b.HasIndex("AuditoryNumber", "AuditoryBuildingNumber");
 
                     b.ToTable("Lessons");
                 });
@@ -303,17 +267,6 @@ namespace TimejApi.Migrations
                     b.Navigation("Building");
                 });
 
-            modelBuilder.Entity("TimejApi.Data.Entities.AuthenticationModel", b =>
-                {
-                    b.HasOne("TimejApi.Data.Entities.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("TimejApi.Data.Entities.Group", b =>
                 {
                     b.HasOne("TimejApi.Data.Entities.Faculty", "Faculty")
@@ -348,10 +301,6 @@ namespace TimejApi.Migrations
                         .HasForeignKey("TeacherId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.HasOne("TimejApi.Data.Entities.Auditory", "Auditory")
-                        .WithMany()
-                        .HasForeignKey("AuditoryNumber", "AuditoryBuildingNumber");
 
                     b.Navigation("Auditory");
 

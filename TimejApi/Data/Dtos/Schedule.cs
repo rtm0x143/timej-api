@@ -2,8 +2,17 @@
 
 namespace TimejApi.Data.Dtos;
 
-public record GroupDto(Guid Id, uint GroupNumber);
-public record LessonGroupDto(Guid Id, uint? SubGroupNumber, uint GroupNumber) : GroupDto(Id, GroupNumber);
+public record GroupDto(Guid Id, uint GroupNumber)
+{
+    public GroupDto() : this(default, default) { }
+}
+
+public record LessonGroupDto(Guid Id, uint? SubGroupNumber, uint GroupNumber) : GroupDto(Id, GroupNumber)
+{
+    public LessonGroupDto() : this(default, default, default) { }
+}
+
+public record GroupCreaton(uint GroupNumber);
 
 public record Teacher(Guid Id, string Fullname);
 
@@ -15,7 +24,7 @@ public record ScheduleDay(DateOnly Date, LessonDto[] Lessons);
 public record LessonCreation(DateOnly Date, uint LessonNumber, Guid LessonId,
     Guid SubjectId, LessonGroupDto[] Groups, Guid TeacherId);
 
-public record BuildingCreation(string Title);
-public record AuditoryCreation(uint Number);
+public record BuildingCreation(uint Number, string Title, string? Address);
+public record AuditoryCreation(Guid BuildingId, uint AuditoryNumber, string? Title);
 public record FacultyCreation(string Name);
-public record SubjectCreation(uint Name);
+public record SubjectCreation(string Name);

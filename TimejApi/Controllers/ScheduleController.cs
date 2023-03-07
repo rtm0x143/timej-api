@@ -24,7 +24,7 @@ namespace TimejApi.Controllers
             [FromQuery] DateOnly endDate,
             [FromQuery] Guid? groupNumber,
             [FromQuery] Guid? teacherId,
-            [FromQuery] uint? buildingNumber,
+            [FromQuery] Guid? buildingNumber,
             [FromQuery] uint? auditoryNumber,
             [FromQuery] bool isOnline = false)
         {

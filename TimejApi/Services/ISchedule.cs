@@ -19,7 +19,7 @@ namespace TimejApi.Services
             DateOnly endDate,
             Guid? groupNumber,
             Guid? teacherId,
-            uint? buildingNumber,
+            Guid? buildingId,
             uint? auditoryNumber,
             bool isOnline);
     }

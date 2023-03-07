@@ -1,8 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Mapster;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TimejApi.Data;
 using TimejApi.Data.Dtos;
 using TimejApi.Data.Entities;
+using UserRoles = TimejApi.Data.Entities.User.Role;
 
 namespace TimejApi.Controllers
 {
@@ -18,54 +21,72 @@ namespace TimejApi.Controllers
         }
 
         /// <summary>
-        /// [NOT IMPLEMENTED]
+        /// Get Faculty entity
         /// </summary>
+        /// <response code="404">When specified id is unknown</response>
         [HttpGet("{id}")]
-        public async Task<ActionResult<Faculty>> Get(Guid id)
+        public Task<ActionResult<Faculty>> Get(Guid id)
         {
-            throw new NotImplementedException();
+            return _context.Faculties.FindAsync(id).AsTask()
+                .ContinueWith<ActionResult<Faculty>>(t => t.Result == null ? NotFound() : Ok(t.Result));
         }
 
 
         /// <summary>
-        /// [IMPLEMENTED]
+        /// Get all Faculties 
         /// </summary>
         [HttpGet("all")]
-        public async Task<ActionResult<Faculty[]>> GetAll()
+        public Task<Faculty[]> GetAll()
         {
-            return Ok(_context.Faculties.ToArray());
+            return _context.Faculties.ToArrayAsync();
         }
 
         /// <summary>
-        /// [IMPLEMENTED]
+        /// Create new Faculty entity
         /// </summary>
+        /// <response code="401">Not authorized</response>
+        /// <response code="403">Caller is not MODERATOR role</response>
         [HttpPost]
-        // TODO: Add policy [Authorize(Policy = "SheduleModerator")]
-        public async Task<ActionResult<Faculty>> Post(FacultyCreation faculty)
+        [Authorize(Roles = nameof(UserRoles.MODERATOR))]
+        public Task<Faculty> Post(FacultyCreation faculty)
         {
-            var entry = _context.Faculties.Add(new Faculty(faculty.Name));
+            var entry = _context.Faculties.Add(faculty.Adapt<Faculty>());
+            return _context.SaveChangesAsync()
+                .ContinueWith(t => entry.Entity);
+        }
+
+        /// <summary>
+        /// Update Faculty entity
+        /// </summary>
+        /// <response code="404">When id is unknown</response>
+        /// <response code="401">Not authorized</response>
+        /// <response code="403">Caller is not MODERATOR role</response>
+        [HttpPut("{id}")]
+        [Authorize(Roles = nameof(UserRoles.MODERATOR))]
+        public async Task<ActionResult<Faculty>> Put(Guid id, FacultyCreation faculty)
+        {
+            var entity = await _context.Faculties.FindAsync(id);
+            if (entity == null) return NotFound();
+
+            var entry = _context.Faculties.Update(faculty.Adapt(entity));
             await _context.SaveChangesAsync();
             return Ok(entry.Entity);
         }
 
         /// <summary>
-        /// [NOT IMPLEMENTED]
+        /// Delete Faculty entity
         /// </summary>
-        [HttpPut("{id}")]
-        // TODO: Add policy [Authorize(Policy = "SheduleModerator")]
-        public async Task<ActionResult<Faculty>> Put(Guid id, FacultyCreation faculty)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <summary>
-        /// [NOT IMPLEMENTED]
-        /// </summary>
+        /// <response code="404">When id is unknown</response>
+        /// <response code="401">Not authorized</response>
+        /// <response code="403">Caller is not MODERATOR role</response>
+        /// <response code="204">When deletion succeeded</response>
         [HttpDelete("{id}")]
-        // TODO: Add policy [Authorize(Policy = "SheduleModerator")]
-        public async Task<ActionResult> Delete(Guid id)
+        [Authorize(Roles = nameof(UserRoles.MODERATOR))]
+        public Task<ActionResult> Delete(Guid id)
         {
-            throw new NotImplementedException();
+            return _context.Faculties.Where(f => f.Id == id)
+                .ExecuteDeleteAsync()
+                .ContinueWith<ActionResult>(task => task.Result == 0 ? NotFound() : NoContent());
         }
     }
 }
