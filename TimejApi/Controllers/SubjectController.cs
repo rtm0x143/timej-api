@@ -84,5 +84,14 @@ namespace TimejApi.Controllers
                 .ExecuteDeleteAsync()
                 .ContinueWith<ActionResult>(t => t.Result == 0 ? NotFound() : NoContent());
         }
+
+        /// <summary>
+        /// Get all existing types of lessons 
+        /// </summary>
+        [HttpGet("types/all")]
+        public async Task<LessonType[]> GetAllTypes()
+        {
+            return await  _context.LessonTypes.ToArrayAsync();
+        }
     }
 }
