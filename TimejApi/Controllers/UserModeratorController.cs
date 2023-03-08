@@ -13,6 +13,8 @@ namespace TimejApi.Controllers;
 /// Contains specific operations which can be performed on User by MODERATOR
 /// </summary>
 [ApiController]
+[Route("api/user")]
+[Authorize(Roles = nameof(UserRoles.MODERATOR))]
 public class UserModeratorController : ControllerBase
 {
     private readonly IUserService _userService;
@@ -32,7 +34,6 @@ public class UserModeratorController : ControllerBase
     /// <response code="403">Caller is not in MODERATOR role</response>
     /// <returns>Collection of allowed faculties</returns>
     [HttpPost("{id}/edit-permission/{facultyId}")]
-    [Authorize(Roles = nameof(UserRoles.MODERATOR))]
     public async Task<ActionResult<Faculty[]>> PostEditPermission(Guid id, Guid facultyId)
     {
         if (await _userService.TryGet(id) is not User user) return NotFound("User's Id is unknown");
@@ -53,7 +54,6 @@ public class UserModeratorController : ControllerBase
     }
 
     [HttpDelete("{id}/edit-permission/{facultyId}")]
-    [Authorize(Roles = nameof(UserRoles.MODERATOR))]
     public Task<ActionResult> DeleteEditPermission(Guid id, Guid facultyId)
     {
         return _userService.RevokeEditPermission(id, facultyId).AsTask()
@@ -75,7 +75,6 @@ public class UserModeratorController : ControllerBase
     /// Acceptable for MODERATORs
     /// </remarks>
     [HttpPost("register")]
-    [Authorize(Roles = nameof(UserRoles.MODERATOR))]
     public async Task<ActionResult<UserDto>> RegisterUser(UserRegister userRegister)
     {
         User.TryGetIdentifierAsGuid(out var moderatorId);
@@ -111,7 +110,6 @@ public class UserModeratorController : ControllerBase
     /// Acceptable for MODERATORs
     /// </remarks>
     [HttpPut("{id}")]
-    [Authorize(Roles = nameof(UserRoles.MODERATOR))]
     public async Task<ActionResult<UserDto>> Put(Guid id, UserRegister data)
     {
         User.TryGetIdentifierAsGuid(out var moderatorId);
