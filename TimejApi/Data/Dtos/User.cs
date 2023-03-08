@@ -57,7 +57,7 @@ public record UserRegister : UserData
 {
     [PasswordPropertyText]
     [StringLength(20, MinimumLength = 6)]
-    public string Password { get; set; }
+    public string? Password { get; set; }
 }
 
 public record UserDto : UserData

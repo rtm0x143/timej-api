@@ -105,10 +105,11 @@ namespace TimejApi.Services.User
             if (user == null) return UnsuredDetailedResult.NotFound<UserEntity>();
 
             userRegister.Adapt(user);
-            user.PasswordHash = _passwordHasher.HashPassword(userRegister.Password);
+            if (userRegister.Password != null)
+                user.PasswordHash = _passwordHasher.HashPassword(userRegister.Password);
 
             if (userRegister.Group?.Id != user.StudentGroup?.Id)
-                user.StudentGroup = userRegister.Group?.Adapt<Data.Entities.Group>();
+                user.StudentGroup = userRegister.Group?.Adapt<Group>();
 
             await DbContext.SaveChangesAsync();
             return new(user);
