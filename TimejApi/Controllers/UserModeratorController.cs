@@ -12,6 +12,7 @@ namespace TimejApi.Controllers;
 /// <summary>
 /// Contains specific operations which can be performed on User by MODERATOR
 /// </summary>
+[ApiController]
 public class UserModeratorController : ControllerBase
 {
     private readonly IUserService _userService;
