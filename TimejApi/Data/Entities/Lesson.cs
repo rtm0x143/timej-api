@@ -21,7 +21,7 @@ namespace TimejApi.Data.Entities
     [Index(nameof(ReplicaId))]
     public record Lesson
     {
-
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         public Guid Id { get; set; }
         public Guid ReplicaId { get; set; }
         public DateOnly Date { get; set; }
@@ -35,7 +35,9 @@ namespace TimejApi.Data.Entities
         public Auditory? Auditory { get; set; }
         [ForeignKey(nameof(Auditory))]
         public Guid? AuditoryId { get; set; }
+
         public ICollection<LessonGroup> AttendingGroups { get; set; }
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
     }
 }

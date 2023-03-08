@@ -21,8 +21,8 @@ public record LessonDto(Guid Id, Guid replicaId, DateOnly Date, uint LessonNumbe
 
 public record ScheduleDay(DateOnly Date, LessonDto[] Lessons);
 
-public record LessonCreation(DateOnly Date, uint LessonNumber, Guid LessonId,
-    Guid SubjectId, LessonGroupDto[] Groups, Guid TeacherId);
+public record LessonCreation(DateOnly Date, uint LessonNumber, Guid LessonTypeId,
+    Guid SubjectId, Guid[] GroupsIds, Guid TeacherId);
 
 public record BuildingCreation(uint Number, string Title, string? Address);
 public record AuditoryCreation(Guid BuildingId, uint AuditoryNumber, string? Title);
