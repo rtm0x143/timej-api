@@ -16,8 +16,8 @@ namespace TimejApi.Data.Entities
         Sixth,
         Seventh
     }
-    [Index(nameof(Date), nameof(Number), nameof(TeacherId), IsUnique = true)]
-    [Index(nameof(Date), nameof(Number), nameof(AuditoryId), IsUnique = true)]
+    [Index(nameof(Date), nameof(LessonNumber), nameof(TeacherId), IsUnique = true)]
+    [Index(nameof(Date), nameof(LessonNumber), nameof(AuditoryId), IsUnique = true)]
     [Index(nameof(ReplicaId))]
     public record Lesson
     {
@@ -25,9 +25,13 @@ namespace TimejApi.Data.Entities
         public Guid Id { get; set; }
         public Guid ReplicaId { get; set; }
         public DateOnly Date { get; set; }
-        public LessonNumber Number { get; set; }
+        public LessonNumber LessonNumber { get; set; }
         public LessonType LessonType { get; set; }
+        [ForeignKey(nameof(LessonType))]
+        public Guid? LessonTypeId { get; set; }
         public Subject Subject { get; set; }
+        [ForeignKey(nameof(Subject))]
+        public Guid? SubjectId { get; set; }
         public User Teacher { get; set; }
         [ForeignKey(nameof(Teacher))]
         public Guid TeacherId { get; set; }

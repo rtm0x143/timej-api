@@ -38,6 +38,16 @@ namespace TimejApi.Data.Mapping
                 .Map(dest => dest.Roles, src => src.Roles.Select(r => new UserRole() { Role = r }))
                 .Map(dest => dest.StudentGroup, src => src.Group);
 
+            TypeAdapterConfig<LessonCreation, Lesson>.NewConfig()
+                .Map(dest => dest.LessonNumber, src => src.LessonNumber);
+
+            TypeAdapterConfig<Lesson, LessonDto>.NewConfig()
+                .Map(dest => dest.LessonNumber, src => src.LessonNumber)
+                .Map(dest => dest.Groups, src => src.AttendingGroups.Select(x => x.Group.Adapt<LessonGroupDto>()));
+
+            TypeAdapterConfig<LessonGroup, LessonGroupDto>.NewConfig()
+                .Map(dest => dest.GroupNumber, src => src.Group.GroupNumber);
+
         }
     }
 }

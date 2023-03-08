@@ -14,13 +14,12 @@ namespace TimejApi.Services
 
         Task<LessonDto[]> CreateLessons(LessonCreation lesson, DateOnly? beginDate,
                 DateOnly? endDate);
-        Task<LessonDto[]> Get(
+        Task<ScheduleDay[]> Get(
             DateOnly beginDate,
             DateOnly endDate,
             Guid? groupNumber,
             Guid? teacherId,
-            Guid? buildingId,
-            uint? auditoryNumber,
+            Guid? auditoryId,
             bool isOnline);
     }
 }

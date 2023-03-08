@@ -24,18 +24,10 @@ namespace TimejApi.Controllers
             [FromQuery] DateOnly endDate,
             [FromQuery] Guid? groupNumber,
             [FromQuery] Guid? teacherId,
-            [FromQuery] Guid? buildingNumber,
-            [FromQuery] uint? auditoryNumber,
+            [FromQuery] Guid? auditoryId,
             [FromQuery] bool isOnline = false)
         {
-            try
-            {
-                return Ok(await _schedule.Get(beginDate, endDate, groupNumber, teacherId, buildingNumber, auditoryNumber, isOnline));
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+                return Ok(await _schedule.Get(beginDate, endDate, groupNumber, teacherId, auditoryId, isOnline));
         }
 
         /// <summary>

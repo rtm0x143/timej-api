@@ -31,11 +31,31 @@ namespace TimejApi.Services
             return lessons.Select(x => x.Adapt<LessonDto>()).ToArray();
         }
 
-        public async Task<LessonDto[]> Get(DateOnly beginDate, DateOnly endDate, Guid? groupNumber, Guid? teacherId, Guid? buildingId, uint? auditoryNumber, bool isOnline)
+        public async Task<ScheduleDay[]> Get(DateOnly beginDate, DateOnly endDate, Guid? groupNumber, Guid? teacherId, Guid? auditoryId, bool isOnline)
         {
-            var querry = new LessonQuerry(_dbContext.Lessons);
-            return await querry.SpecifyDate(beginDate, endDate).SpecifyGroup(groupNumber).SpecifyPlace(auditoryNumber, buildingId, isOnline)
-                .SpecifyTeacher(teacherId).Get().Select(x => x.Adapt<LessonDto>()).ToArrayAsync();
+
+            var query = new LessonQuerry(_dbContext.Lessons);
+            var timetable = await query.SpecifyDate(beginDate, endDate).SpecifyGroup(groupNumber).SpecifyPlace(auditoryId, isOnline)
+                .SpecifyTeacher(teacherId).GetEnriched().OrderBy(x => x.LessonNumber).GroupBy(x => x.Date).ToDictionaryAsync(x => x.Key, x => x.ToArray());
+            var result = new List<ScheduleDay>();
+            foreach (var (day, schedule) in timetable)
+            {
+                //TODO maybe remove UNSPECIFIED in LessonNumber enum, to not perform -1
+                var dailySchedule = new LessonDto[Enum.GetNames(typeof(LessonNumber)).Length - 1];
+                foreach (var lesson in schedule)
+                {
+                    var slot = (int)lesson.LessonNumber;
+
+                    dailySchedule[slot] = lesson.Adapt<LessonDto>();
+                }
+                result.Add(new ScheduleDay(day, dailySchedule));
+            }
+            return result.ToArray();
+        }
+
+        private async Task CheckCollisions(DateOnly beginDate, DateOnly endDate, Guid? groupNumber, Guid? teacherId, Guid? buildingId, uint? auditoryNumber, bool isOnline)
+        {
+
         }
 
         public async Task DeleteLessons(Guid replicaId)
@@ -53,7 +73,7 @@ namespace TimejApi.Services
 
         public async Task DeleteSingle(Guid id)
         {
-            await _dbContext.Lessons.Where(x => x.Id == id).ExecuteDeleteAsync();
+            var result = await _dbContext.Lessons.Where(x => x.Id == id).ExecuteDeleteAsync();
         }
 
         public async Task<LessonDto[]> CreateLessons(LessonCreation lesson, DateOnly? beginDate, DateOnly? endDate)
@@ -73,22 +93,40 @@ namespace TimejApi.Services
             }
 
             var lessonsRange = new List<Lesson>();
-            for (DateOnly day = (DateOnly)beginDate; day <= endDate; day.AddDays(DEFAULT_INTERVAL_DAYS))
+            for (DateOnly day = lesson.Date; day <= endDate; day = day.AddDays(DEFAULT_INTERVAL_DAYS))
             {
-                lessonsRange.Add(lesson.Adapt<Lesson>());
-                lesson.Date.AddDays(DEFAULT_INTERVAL_DAYS);
+                var new_lesson = lesson.Adapt<Lesson>();
+                new_lesson.Date = day;
+                lessonsRange.Add(new_lesson);
             }
-            await _dbContext.Lessons.AddRangeAsync(lessonsRange);
+            for (DateOnly day = (DateOnly)beginDate; day < lesson.Date; day = day.AddDays(DEFAULT_INTERVAL_DAYS))
+            {
+                var new_lesson = lesson.Adapt<Lesson>();
+                new_lesson.Date = day;
+                lessonsRange.Add(new_lesson);
+            }
+            await _dbContext.Lessons.AddRangeAsync(lessonsRange.Select(x => { x.ReplicaId = Guid.NewGuid(); return x; }));
             await _dbContext.SaveChangesAsync();
+            Console.WriteLine(lessonsRange[0]);
             return lessonsRange.Select(x => x.Adapt<LessonDto>()).ToArray();
         }
 
         private async Task<LessonDto> CreateSingle(LessonCreation lesson)
         {
             var _lesson = lesson.Adapt<Lesson>();
+            _lesson.AttendingGroups = new List<LessonGroup>();
+            foreach (var group in lesson.AttendingGroups)
+            {
+                _lesson.AttendingGroups.Append(group.Adapt<LessonGroup>());
+            }
             await _dbContext.Lessons.AddAsync(_lesson);
             await _dbContext.SaveChangesAsync();
             return _lesson.Adapt<LessonDto>();
+        }
+
+        private void AdaptGroups(Lesson lesson, LessonCreation lessonCreation)
+        {
+
         }
     }
 
@@ -103,6 +141,14 @@ namespace TimejApi.Services
         public IQueryable<Lesson> Get()
         {
             return _lessons;
+        }
+
+        public IQueryable<Lesson> GetEnriched()
+        {
+            return _lessons.Include(x => x.Teacher).
+                Include(x => x.Auditory).Include(x => x.AttendingGroups).
+                Include(x => x.Auditory).ThenInclude(x => x.Building).
+                Include(x => x.LessonType).Include(x => x.Subject);
         }
         public LessonQuerry SpecifyDate(DateOnly beginDate, DateOnly endDate)
         {
@@ -119,23 +165,19 @@ namespace TimejApi.Services
         public LessonQuerry SpecifyGroup(Guid? groupId)
         {
             if (groupId is null) return this;
-            _lessons = _lessons.Where(x => x.AttendingGroups.Select(x => x.GroupId).Contains((Guid)groupId));
+            _lessons = _lessons.Where(x => x.AttendingGroups.Select(x => x.GroupId).Contains((Guid)groupId)).Include(x => x.AttendingGroups);
             return this;
         }
 
-        public LessonQuerry SpecifyPlace(uint? auditoryNumber, Guid? buildingId, bool isOnline)
+        public LessonQuerry SpecifyPlace(Guid? auditoryId, bool isOnline)
         {
             if (isOnline)
             {
                 _lessons = _lessons.Where(x => x.Auditory == null);
                 return this;
             }
-            if (auditoryNumber is null && buildingId is null) return this;
-            if (auditoryNumber is null || buildingId is null)
-            {
-                throw new ArgumentNullException("Both or none of auditoryNumber and buildingId must be specified");
-            }
-            _lessons = _lessons.Where(x => x.Auditory != null && x.Auditory.BuildingId == buildingId && x.Auditory.AuditoryNumber == auditoryNumber);
+            if (auditoryId is null) return this;
+            _lessons = _lessons.Where(x => x.AuditoryId == auditoryId);
             return this;
         }
     }
