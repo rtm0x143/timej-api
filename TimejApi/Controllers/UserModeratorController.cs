@@ -12,12 +12,12 @@ namespace TimejApi.Controllers;
 /// <summary>
 /// Contains specific operations which can be performed on User by MODERATOR
 /// </summary>
-public class ModeratorUserController : ControllerBase
+public class UserModeratorController : ControllerBase
 {
     private readonly IUserService _userService;
-    private readonly ILogger<ModeratorUserController> _logger;
+    private readonly ILogger<UserModeratorController> _logger;
 
-    public ModeratorUserController(IUserService userService, ILogger<ModeratorUserController> logger)
+    public UserModeratorController(IUserService userService, ILogger<UserModeratorController> logger)
     {
         _userService = userService;
         _logger = logger;
@@ -51,7 +51,7 @@ public class ModeratorUserController : ControllerBase
         };
     }
 
-    [HttpDelete("{id}/editPermission/{facultyId}")]
+    [HttpDelete("{id}/edit-permission/{facultyId}")]
     [Authorize(Roles = nameof(UserRoles.MODERATOR))]
     public Task<ActionResult> DeleteEditPermission(Guid id, Guid facultyId)
     {
