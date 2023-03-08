@@ -45,7 +45,7 @@ namespace TimejApi.Controllers
         /// Create new Subject 
         /// </summary>
         /// <response code="401">Not authorized</response>
-        /// <response code="403">Caller has not MODERATOR, not EDITOR role</response>
+        /// <response code="403">Caller has not MODERATOR, not SCHEDULE_EDITOR role</response>
         [HttpPost]
         [Authorize(Roles = $"{nameof(UserRoles.MODERATOR)},{nameof(UserRoles.SCHEDULE_EDITOR)}")]
         public Task<Subject> Post(SubjectCreation subject)
@@ -58,7 +58,7 @@ namespace TimejApi.Controllers
         /// Create new Subject 
         /// </summary>
         /// <response code="401">Not authorized</response>
-        /// <response code="403">Caller has not MODERATOR, not EDITOR role</response>
+        /// <response code="403">Caller has not MODERATOR, not SCHEDULE_EDITOR role</response>
         [HttpPut("{id}")]
         [Authorize(Roles = $"{nameof(UserRoles.MODERATOR)},{nameof(UserRoles.SCHEDULE_EDITOR)}")]
         public async Task<ActionResult<Subject>> Put(Guid id, SubjectCreation subjectCreation)
@@ -74,7 +74,7 @@ namespace TimejApi.Controllers
         /// Create new Subject 
         /// </summary>
         /// <response code="401">Not authorized</response>
-        /// <response code="403">Caller has not MODERATOR, not EDITOR role</response>
+        /// <response code="403">Caller has not MODERATOR, not SCHEDULE_EDITOR role</response>
         /// <response code="204">When deletion succeeded</response>
         [HttpDelete("{id}")]
         [Authorize(Roles = $"{nameof(UserRoles.MODERATOR)},{nameof(UserRoles.SCHEDULE_EDITOR)}")]
