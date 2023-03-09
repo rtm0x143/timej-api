@@ -5,7 +5,6 @@ using Mapster;
 using EntityFramework.Exceptions.Common;
 using TimejApi.Helpers;
 using TimejApi.Services.User;
-using UserEntity = TimejApi.Data.Entities.User;
 using UserRoles = TimejApi.Data.Entities.User.Role;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
@@ -110,7 +109,7 @@ namespace TimejApi.Controllers
         /// <response code="400">When no filters were specified</response>
         /// <response code="403">
         /// Unauthorised user can only query teachers. 
-        /// In other cases caller should has MODERATOR or EDITOR role.
+        /// In other cases caller should has MODERATOR or SCHEDULE_EDITOR role.
         /// </response>
         [HttpGet]
         public async Task<ActionResult<UserDto[]>> QueryUsers(
