@@ -7,9 +7,9 @@ public record GroupDto(Guid Id, uint GroupNumber)
     public GroupDto() : this(default, default) { }
 }
 
-public record LessonGroupDto(Guid Id, uint? SubGroupNumber, uint GroupNumber) : GroupDto(Id, GroupNumber)
+public record SubgroupDto(Guid Id, uint? SubgroupNumber, uint GroupNumber) : GroupDto(Id, GroupNumber)
 {
-    public LessonGroupDto() : this(default, default, default) { }
+    public SubgroupDto() : this(default, default, default) { }
 }
 
 public record GroupCreaton(uint GroupNumber);
@@ -17,7 +17,7 @@ public record GroupCreaton(uint GroupNumber);
 public record Teacher(Guid Id, string Fullname);
 
 public record LessonDto(Guid Id, Guid ReplicaId, DateOnly Date, LessonNumber LessonNumber, LessonType LessonType,
-    Subject Subject, LessonGroupDto[] Groups, Teacher Teacher, Auditory Auditory);
+    Subject Subject, SubgroupDto[] Groups, Teacher Teacher, Auditory Auditory);
 
 public record ScheduleDay(DateOnly Date, LessonDto[] Lessons);
 
