@@ -1,21 +1,28 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Mapster;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics.CodeAnalysis;
 using TimejApi.Data.Dtos;
 using TimejApi.Data.Entities;
+using TimejApi.Helpers;
 using TimejApi.Services;
+using TimejApi.Services.User;
 
 namespace TimejApi.Controllers
 {
     [ApiController]
-    [Route("api/schedule")]
+    [Route("api/scheduleService")]
     public class ScheduleController : Controller
     {
-        private readonly ISchedule _schedule;
+        private readonly ISchedule _scheduleService;
+        private readonly IAuthorizationService _authorizationService;
+        private readonly IUserService _userService;
 
-        public ScheduleController(ISchedule schedule)
+        public ScheduleController(ISchedule scheduleService, IAuthorizationService authorizationService, IUserService userService)
         {
-            _schedule = schedule;
+            _scheduleService = scheduleService;
+            _authorizationService = authorizationService;
+            _userService = userService;
         }
 
         [HttpGet]
@@ -27,31 +34,39 @@ namespace TimejApi.Controllers
             [FromQuery] Guid? auditoryId,
             [FromQuery] bool isOnline = false)
         {
-                return Ok(await _schedule.Get(beginDate, endDate, groupNumber, teacherId, auditoryId, isOnline));
+            return Ok(await _scheduleService.Get(beginDate, endDate, groupNumber, teacherId, auditoryId, isOnline));
         }
 
         /// <summary>
-        /// [NOT IMPLEMENTED]
+        /// Get default schedule of user from credentials
         /// </summary>
         [HttpGet("default")]
         [Authorize]
         public async Task<ActionResult<ScheduleDay[]>> GetDefault([FromQuery] DateOnly beginDate,
             [FromQuery] DateOnly endDate)
         {
-            throw new NotImplementedException();
+            User.TryGetIdentifierAsGuid(out var guid);
+
+            var userData = await  _userService.TryGet(guid);
+            if (userData == null) { return NotFound($"User with id {guid} not found");}
+            if(userData.StudentGroup is not null)
+            {
+                return Ok(await _scheduleService.Get(beginDate, endDate, userData.StudentGroup.Id, null, null));
+            }
+            return Ok(await _scheduleService.Get(beginDate, endDate, null, userData.Id, null));
         }
 
         /// <summary>
         /// Create lessons in a range
         /// </summary>
         [HttpPost]
-        // TODO: Add policy [Authorize(Policy = "SheduleEditor")]
         public async Task<ActionResult<LessonDto>> Post(LessonCreation lesson, [FromQuery] DateOnly? beginDate,
             [FromQuery] DateOnly? endDate)
         {
+            await _authorizationService.AuthorizeAsync(User, lesson.AttendingGroups.Select(x => x.GroupId), "ScheduleEditor");
             try
             {
-                return Ok(await _schedule.CreateLessons(lesson, beginDate, endDate));
+                return Ok(await _scheduleService.CreateLessons(lesson, beginDate, endDate));
             }
             catch (Exception ex)
             {
@@ -60,12 +75,12 @@ namespace TimejApi.Controllers
         }
 
         [HttpPut("replica/{id}")]
-        // TODO: Add policy [Authorize(Policy = "SheduleEditor")]
         public async Task<ActionResult<LessonDto>> Put(Guid replicaId, LessonCreation lesson)
         {
+            await _authorizationService.AuthorizeAsync(User, lesson.AttendingGroups.Select(x => x.GroupId), "ScheduleEditor");
             try
             {
-                return Ok(await _schedule.EditLessons(replicaId, lesson));
+                return Ok(await _scheduleService.EditLessons(replicaId, lesson));
             }
             catch (Exception ex)
             {
@@ -74,12 +89,13 @@ namespace TimejApi.Controllers
         }
 
         [HttpDelete("replica/{id}")]
-        // TODO: Add policy [Authorize(Policy = "SheduleEditor")]
         public async Task<ActionResult> Delete(Guid replicaId)
         {
+            var groups = await _scheduleService.GetAttendingGroups(replicaId);
+            await _authorizationService.AuthorizeAsync(User, groups, "ScheduleEditor");
             try
             {
-                await _schedule.DeleteLessons(replicaId);
+                await _scheduleService.DeleteLessons(replicaId);
                 return Ok();
             }
             catch (Exception ex)
@@ -89,12 +105,12 @@ namespace TimejApi.Controllers
         }
 
         [HttpPut("{id}")]
-        // TODO: Add policy [Authorize(Policy = "SheduleEditor")]
         public async Task<ActionResult<LessonDto>> PutSingle(Guid id, LessonCreation lesson)
         {
+            await _authorizationService.AuthorizeAsync(User, lesson.AttendingGroups.Select(x => x.GroupId), "ScheduleEditor");
             try
             {
-                return Ok(await _schedule.EditSingle(id, lesson));
+                return Ok(await _scheduleService.EditSingle(id, lesson));
             }
             catch (Exception ex)
             {
@@ -106,12 +122,13 @@ namespace TimejApi.Controllers
         /// Delete single lesson by id
         /// </summary>
         [HttpDelete("{id}")]
-        // TODO: Add policy [Authorize(Policy = "SheduleEditor")]
         public async Task<ActionResult> DeleteSingle(Guid id)
         {
+            var groups = await _scheduleService.GetAttendingGroups(id);
+            await _authorizationService.AuthorizeAsync(User, groups, "ScheduleEditor");
             try
             {
-                await _schedule.DeleteSingle(id);
+                await _scheduleService.DeleteSingle(id);
                 return Ok();
             }
             catch (Exception ex)

@@ -79,12 +79,12 @@ namespace TimejApi.Services
             return teacherBusy && auditoryBusy && groupsAnyBusy;
         }
 
-        public async Task<int> DeleteLessons(Guid replicaId)
+        public async Task DeleteLessons(Guid replicaId)
         {
-            return await _dbContext.Lessons.Where(x => x.ReplicaId == replicaId).ExecuteDeleteAsync();
+            await _dbContext.Lessons.Where(x => x.ReplicaId == replicaId).ExecuteDeleteAsync();
         }
 
-        public async Task<Result<LessonDto, DbUpdateException>> EditSingle(Guid id, LessonCreation lesson)
+        public async Task<LessonDto> EditSingle(Guid id, LessonCreation lesson)
         {
             var _lesson = await _dbContext.Lessons.FindAsync(id) ?? throw new KeyNotFoundException($"Attempt to edit non-existent lesson with id {id}");
             if (await CheckCollisions(lesson))
@@ -95,12 +95,12 @@ namespace TimejApi.Services
             try
             {
                 await _dbContext.SaveChangesAsync();
-                return new(_lesson.Adapt<LessonDto>());
+                return _lesson.Adapt<LessonDto>();
             }
             catch (DbUpdateException e)
             {
                 _logger.LogInformation($"tried to update {e.Entries} ");
-                return new(e);
+                throw new ArgumentException($"Data in new lesson contains incorrect relations");
             }
         }
 
@@ -178,6 +178,16 @@ namespace TimejApi.Services
             await _dbContext.Lessons.AddAsync(_lesson);
             await _dbContext.SaveChangesAsync();
             return _lesson.Adapt<LessonDto>();
+        }
+
+        public async Task<Guid[]> GetAttendingGroupsByReplica(Guid replicaId)
+        {
+            return (await _dbContext.Lessons.Include(x => x.AttendingGroups).FirstAsync(x => x.ReplicaId == replicaId)).AttendingGroups.Select(x => x.GroupId).ToArray();
+        }
+
+        public async Task<Guid[]> GetAttendingGroups(Guid id)
+        {
+            return (await _dbContext.Lessons.Include(x => x.AttendingGroups).FirstAsync(x => x.Id == id)).AttendingGroups.Select(x => x.GroupId).ToArray();
         }
     }
 

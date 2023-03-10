@@ -7,6 +7,8 @@ namespace TimejApi.Services
 {
     public interface ISchedule
     {
+        Task<Guid[]> GetAttendingGroupsByReplica(Guid replicaId);
+        Task<Guid[]> GetAttendingGroups(Guid id);
         Task<LessonDto[]> EditLessons(Guid replicaId, LessonCreation lesson);
         Task DeleteLessons(Guid replicaId);
         Task<LessonDto> EditSingle(Guid id, LessonCreation lesson);
@@ -20,6 +22,6 @@ namespace TimejApi.Services
             Guid? groupNumber,
             Guid? teacherId,
             Guid? auditoryId,
-            bool isOnline);
+            bool isOnline = false);
     }
 }
