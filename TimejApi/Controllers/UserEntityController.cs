@@ -84,7 +84,7 @@ namespace TimejApi.Controllers
                 && !User.IsInRole(nameof(UserRoles.MODERATOR))) return Forbid();
             try
             {
-                if (!(await _userService.TryEdit(id, data)).Ensure(out var user, out var problem))
+                if (!(await _userService.TryEdit(id, data)).Unpack(out var user, out var problem))
                     return problem.ToActionResult();
 
                 _logger.LogInformation("User ({}) edited user ({})", callerId, user.Id);

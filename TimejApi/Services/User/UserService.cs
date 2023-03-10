@@ -25,7 +25,7 @@ public class UserService : IUserService
         _passwordHasher = passwordHasher;
     }
 
-    public async ValueTask<UnsuredResult<UserEntity, ModelStateDictionary>> TryLogin(UserLogin userLogin)
+    public async ValueTask<Result<UserEntity, ModelStateDictionary>> TryLogin(UserLogin userLogin)
     {
         var user = await DbContext.Users
             .Include(u => u.Roles)
@@ -75,11 +75,11 @@ public class UserService : IUserService
         return entry.Entity;
     }
 
-    public async ValueTask<UnsuredResult<UserEntity, ProblemDetails>> ChangePassword(Guid userId, ChangePasswordDto change)
+    public async ValueTask<Result<UserEntity, ProblemDetails>> ChangePassword(Guid userId, ChangePasswordDto change)
     {
         var user = await TryGet(userId);
         if (user == null)
-            return UnsuredDetailedResult.NotFound<UserEntity>();
+            return DetailedResult.NotFound<UserEntity>();
 
         if (user.PasswordHash == null || !_passwordHasher.VerifyPassword(change.OldPassword, user.PasswordHash))
             return new(new ProblemDetails() { Status = StatusCodes.Status403Forbidden, Title = "Incorrect password" });
@@ -89,20 +89,20 @@ public class UserService : IUserService
         return new(user);
     }
 
-    public async ValueTask<UnsuredResult<UserEntity, ProblemDetails>> TryEdit(Guid id, UserEditDto edit)
+    public async ValueTask<Result<UserEntity, ProblemDetails>> TryEdit(Guid id, UserEditDto edit)
     {
         var user = await DbContext.Users.FindAsync(id);
-        if (user == null) return UnsuredDetailedResult.NotFound<UserEntity>();
+        if (user == null) return DetailedResult.NotFound<UserEntity>();
 
         user.Email = edit.Email;
         await DbContext.SaveChangesAsync();
         return new(user);
     }
 
-    public async ValueTask<UnsuredResult<UserEntity, ProblemDetails>> TryChangeUser(Guid id, UserRegister userRegister)
+    public async ValueTask<Result<UserEntity, ProblemDetails>> TryChangeUser(Guid id, UserRegister userRegister)
     {
         var user = await TryGet(id);
-        if (user == null) return UnsuredDetailedResult.NotFound<UserEntity>();
+        if (user == null) return DetailedResult.NotFound<UserEntity>();
 
         userRegister.Adapt(user);
         if (userRegister.Password != null)

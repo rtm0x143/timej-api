@@ -16,13 +16,13 @@ public class EditPermissonService : IEditPermissonService
         DbContext = context;
     }
 
-    public ValueTask<UnsuredResult<Faculty[], Exception>> TryGetEditPermissions(Guid userId)
+    public ValueTask<Result<Faculty[], Exception>> TryGetEditPermissions(Guid userId)
     {
         var task = DbContext.Users.Where(u => u.Id == userId)
                 .Include(nameof(UserEntity.AllowedFaculties))
                 .Select(u => u.AllowedFaculties)
                 .FirstOrDefaultAsync()
-                .ContinueWith<UnsuredResult<Faculty[], Exception>>(t =>
+                .ContinueWith<Result<Faculty[], Exception>>(t =>
                 {
                     if (t.Result != null) return new(t.Result.ToArray());
                     return new(new KeyNotFoundException(nameof(userId)));
@@ -31,7 +31,7 @@ public class EditPermissonService : IEditPermissonService
         return new (task);
     }
 
-    public async ValueTask<UnsuredResult<Faculty[], Exception>> TryGrantEditPermission(Guid userId, Guid facultyId)
+    public async ValueTask<Result<Faculty[], Exception>> TryGrantEditPermission(Guid userId, Guid facultyId)
     {
         var user = await DbContext.Users.Include(nameof(UserEntity.AllowedFaculties))
             .FirstOrDefaultAsync(u => u.Id == userId);
@@ -49,7 +49,7 @@ public class EditPermissonService : IEditPermissonService
         return new(user.AllowedFaculties.ToArray());
     }
 
-    public async ValueTask<UnsuredResult<UserEditFacultyPermission, Exception>> RevokeEditPermission(Guid userId, Guid facultyId)
+    public async ValueTask<Result<UserEditFacultyPermission, Exception>> RevokeEditPermission(Guid userId, Guid facultyId)
     {
         var perm = await DbContext.UserEditFacultyPermissions.FindAsync(userId, facultyId);
         if (perm == null) return new(new KeyNotFoundException());

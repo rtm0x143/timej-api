@@ -38,7 +38,7 @@ public class UserServiceTest
         var loginForm = _users.RegisteredUserLogin with { Password = "" };
         var result = await _userService.TryLogin(loginForm);
 
-        Assert.False(result.Ensure(out var user, out var errors));
+        Assert.False(result.Unpack(out var user, out var errors));
         Assert.Equal(1, errors.ErrorCount);
 
         var error = errors.First().Key;
@@ -51,7 +51,7 @@ public class UserServiceTest
         var loginForm = _users.RegisteredUserLogin with { Password = "Some_strength_password_123" };
         var result = await _userService.TryLogin(loginForm);
 
-        Assert.False(result.Ensure(out var user, out var errors));
+        Assert.False(result.Unpack(out var user, out var errors));
         Assert.Equal(1, errors.ErrorCount);
 
         var error = errors.First().Key;
@@ -63,7 +63,7 @@ public class UserServiceTest
     {
         var result = await _userService.TryLogin(_users.UnregisteredUserLogin);
 
-        Assert.False(result.Ensure(out var user, out var errors));
+        Assert.False(result.Unpack(out var user, out var errors));
         Assert.Equal(1, errors.ErrorCount);
 
         var error = errors.First().Key;
@@ -76,7 +76,7 @@ public class UserServiceTest
         var loginForm = _users.RegisteredUserLogin;
         var result = await _userService.TryLogin(loginForm);
 
-        Assert.True(result.Ensure(out var user, out var errors));
+        Assert.True(result.Unpack(out var user, out var errors));
         Assert.Equal(loginForm.Email, user.Email);
     }
 }
