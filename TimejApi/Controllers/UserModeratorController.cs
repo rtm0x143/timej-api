@@ -12,14 +12,18 @@ namespace TimejApi.Controllers;
 /// <summary>
 /// Contains specific operations which can be performed on User by MODERATOR
 /// </summary>
-public class ModeratorUserController : ControllerBase
+[ApiController]
+[Route("api/user")]
+public class UserModeratorController : ControllerBase
 {
     private readonly IUserService _userService;
-    private readonly ILogger<ModeratorUserController> _logger;
+    private readonly IEditPermissonService _editPermissonServile;
+    private readonly ILogger<UserModeratorController> _logger;
 
-    public ModeratorUserController(IUserService userService, ILogger<ModeratorUserController> logger)
+    public UserModeratorController(IUserService userService, IEditPermissonService editPermissonServile, ILogger<UserModeratorController> logger)
     {
         _userService = userService;
+        _editPermissonServile = editPermissonServile;
         _logger = logger;
     }
 
@@ -38,9 +42,9 @@ public class ModeratorUserController : ControllerBase
         if (user.Roles.FirstOrDefault(u => u.Role == UserRoles.SCHEDULE_EDITOR) == null)
             return Problem(statusCode: StatusCodes.Status400BadRequest,
                            title: "Invalid target user",
-                           detail: "User should be in group EDITOR to recieve edit permissions");
+                           detail: "User should be in group SCHEDULE_EDITOR to recieve edit permissions");
 
-        var result = await _userService.TryGrantEditPermission(id , facultyId);
+        var result = await _editPermissonServile.TryGrantEditPermission(id , facultyId);
         if (result.Ensure(out var faculties, out var exception)) return Ok(faculties.ToArray());
 
         return exception switch
@@ -51,11 +55,11 @@ public class ModeratorUserController : ControllerBase
         };
     }
 
-    [HttpDelete("{id}/editPermission/{facultyId}")]
+    [HttpDelete("{id}/edit-permission/{facultyId}")]
     [Authorize(Roles = nameof(UserRoles.MODERATOR))]
     public Task<ActionResult> DeleteEditPermission(Guid id, Guid facultyId)
     {
-        return _userService.RevokeEditPermission(id, facultyId).AsTask()
+        return _editPermissonServile.RevokeEditPermission(id, facultyId).AsTask()
             .ContinueWith<ActionResult>(t =>
             {
                 if (t.Result.Ensure(out var perm, out var exception)) return NoContent();
@@ -129,6 +133,50 @@ public class ModeratorUserController : ControllerBase
                            title: "Cannot create user",
                            detail: "Seemed like some identifiers already in use");
         }
+    }
+
+    /// <summary>
+    /// Method to get edit permissions of some User
+    /// </summary>
+    /// <remarks>
+    /// Allowed method for MODERATORs or target User if he is SCHEDULE_EDITOR
+    /// </remarks>
+    [HttpGet("{id}/edit-permission/all")]
+    [Authorize(Roles = $"{nameof(UserRoles.MODERATOR)},{nameof(UserRoles.SCHEDULE_EDITOR)}")]
+    public async Task<ActionResult<Faculty[]>> GetEditPermissions(Guid id)
+    {
+        if (!User.IdentifierEqualsOrInRole(id, nameof(UserRoles.MODERATOR))) return Forbid();
+
+        var result = await _editPermissonServile.TryGetEditPermissions(id);
+        if (result.Ensure(out var faculties, out var exception)) return Ok(faculties);
+
+        return exception switch
+        {
+            KeyNotFoundException => NotFound(),
+            _ => Problem()
+        };
+    }
+
+    /// <summary>
+    /// Method to get edit permissions of Caller
+    /// </summary>
+    /// <remarks>
+    /// Allowed method for SCHEDULE_EDITORs
+    /// </remarks>
+    [HttpGet("edit-permission/all")]
+    [Authorize(Roles = nameof(UserRoles.SCHEDULE_EDITOR))]
+    public async Task<ActionResult<Faculty[]>> GetSelfEditPermissions()
+    {
+        if (!User.TryGetIdentifierAsGuid(out var id)) return BadRequest();
+
+        var result = await _editPermissonServile.TryGetEditPermissions(id);
+        if (result.Ensure(out var faculties, out var exception)) return Ok(faculties);
+
+        return exception switch
+        {
+            KeyNotFoundException => NotFound(),
+            _ => Problem()
+        };
     }
 }
 

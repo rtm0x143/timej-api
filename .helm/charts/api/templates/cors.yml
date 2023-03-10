@@ -14,6 +14,8 @@ config:
     - Content-Type
     - Date
     - X-Auth-Token
+    - Authorization
+    - authorization
   exposed_headers:
     - X-Auth-Token
   credentials: true

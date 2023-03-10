@@ -20,6 +20,7 @@ builder.Services.AddSingleton<IJwtAuthentication, JwtAuthenticationService>();
 builder.Services.AddScoped<IRefreshTokenService, RefreshTokenService>();
 builder.Services.AddSingleton<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IEditPermissonService, EditPermissonService>();
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
