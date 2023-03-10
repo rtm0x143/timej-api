@@ -5,6 +5,7 @@ using Microsoft.IdentityModel.Tokens;
 using TimejApi.Data;
 using TimejApi.Data.Dtos;
 using TimejApi.Data.Entities;
+using TimejApi.Helpers.Types;
 
 namespace TimejApi.Services
 {
@@ -26,6 +27,10 @@ namespace TimejApi.Services
             var lessons = await _dbContext.Lessons.Where(x => x.ReplicaId == replicaId).ToListAsync();
             foreach (var item in lessons)
             {
+                if (await CheckCollisions(lesson))
+                {
+                    throw new ArgumentException($"The lesson tried to be moved to {lesson.Date} in {lesson.LessonNumber} timeslot has collisions");
+                }
                 lesson.Adapt(item);
             }
             await _dbContext.SaveChangesAsync();
@@ -54,6 +59,11 @@ namespace TimejApi.Services
             return result.ToArray();
         }
 
+        /// <summary>
+        /// <para>Checks if lesson has collisions when inserting into database</para>
+        /// i.e. the collision happens when at least one of teacher, auditory or any of groups already has lesson at the same time
+        /// </summary>
+        /// <returns><c>true</c> if collision happens, <c>false</c> otherwise</returns>
         private async Task<bool> CheckCollisions(LessonCreation lesson)
         {
             var isOnline = lesson.AuditoryId is null;
@@ -69,17 +79,29 @@ namespace TimejApi.Services
             return teacherBusy && auditoryBusy && groupsAnyBusy;
         }
 
-        public async Task DeleteLessons(Guid replicaId)
+        public async Task<int> DeleteLessons(Guid replicaId)
         {
-            await _dbContext.Lessons.Where(x => x.ReplicaId == replicaId).ExecuteDeleteAsync();
+            return await _dbContext.Lessons.Where(x => x.ReplicaId == replicaId).ExecuteDeleteAsync();
         }
 
-        public async Task<LessonDto> EditSingle(Guid id, LessonCreation lesson)
+        public async Task<Result<LessonDto, DbUpdateException>> EditSingle(Guid id, LessonCreation lesson)
         {
             var _lesson = await _dbContext.Lessons.FindAsync(id) ?? throw new KeyNotFoundException($"Attempt to edit non-existent lesson with id {id}");
+            if (await CheckCollisions(lesson))
+            {
+                throw new ArgumentException($"The lesson tried to be moved to {lesson.Date} in {lesson.LessonNumber} timeslot has collisions");
+            }
             lesson.Adapt(_lesson);
-            await _dbContext.SaveChangesAsync();
-            return _lesson.Adapt<LessonDto>();
+            try
+            {
+                await _dbContext.SaveChangesAsync();
+                return new(_lesson.Adapt<LessonDto>());
+            }
+            catch (DbUpdateException e)
+            {
+                _logger.LogInformation($"tried to update {e.Entries} ");
+                return new(e);
+            }
         }
 
         public async Task DeleteSingle(Guid id)
@@ -109,9 +131,14 @@ namespace TimejApi.Services
                 var isCollided = await CheckCollisions(lesson);
                 if (isCollided)
                 {
-                    throw new ArgumentException($"The lesson you tried to add on {lesson.Date} in {lesson.LessonNumber} slot had collisions");
+                    throw new ArgumentException($"The lesson tried to add on {lesson.Date} in {lesson.LessonNumber} timeslot has collisions");
                 }
                 var newLesson = lesson.Adapt<Lesson>();
+                newLesson.AttendingGroups = new List<LessonGroup>();
+                foreach (var group in lesson.AttendingGroups)
+                {
+                    newLesson.AttendingGroups.Add(group.Adapt<LessonGroup>());
+                }
                 newLesson.Date = day;
                 return newLesson;
             }
@@ -135,20 +162,22 @@ namespace TimejApi.Services
 
         private async Task<LessonDto> CreateSingle(LessonCreation lesson)
         {
+            var isCollided = await CheckCollisions(lesson);
+            if (isCollided)
+            {
+                throw new ArgumentException($"The lesson tried to be added on {lesson.Date} in {lesson.LessonNumber} timeslot has collisions");
+            }
             var _lesson = lesson.Adapt<Lesson>();
+            _lesson.ReplicaId = Guid.NewGuid();
             _lesson.AttendingGroups = new List<LessonGroup>();
             foreach (var group in lesson.AttendingGroups)
             {
-                _lesson.AttendingGroups.Append(group.Adapt<LessonGroup>());
+                _lesson.AttendingGroups.Add(group.Adapt<LessonGroup>());
             }
+
             await _dbContext.Lessons.AddAsync(_lesson);
             await _dbContext.SaveChangesAsync();
             return _lesson.Adapt<LessonDto>();
-        }
-
-        private void AdaptGroups(Lesson lesson, LessonCreation lessonCreation)
-        {
-
         }
     }
 
