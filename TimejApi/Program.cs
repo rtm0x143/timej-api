@@ -38,7 +38,7 @@ builder.Services.AddAuthorization(configure =>
         configurePolicy.AddRequirements(new FacultyEditorRequirement());
     });
 });
-
+builder.Services.AddScoped<ISchedule,ScheduleService>();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>

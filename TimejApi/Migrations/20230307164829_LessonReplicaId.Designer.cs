@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using TimejApi.Data;
@@ -11,9 +12,11 @@ using TimejApi.Data;
 namespace TimejApi.Migrations
 {
     [DbContext(typeof(ScheduleDbContext))]
-    partial class ScheduleDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230307164829_LessonReplicaId")]
+    partial class LessonReplicaId
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -142,18 +145,16 @@ namespace TimejApi.Migrations
                     b.Property<DateOnly>("Date")
                         .HasColumnType("date");
 
-                    b.Property<int>("LessonNumber")
-                        .HasColumnType("integer");
-
-                    b.Property<Guid?>("LessonTypeId")
-                        .IsRequired()
+                    b.Property<Guid>("LessonTypeId")
                         .HasColumnType("uuid");
+
+                    b.Property<int>("Number")
+                        .HasColumnType("integer");
 
                     b.Property<Guid>("ReplicaId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid?>("SubjectId")
-                        .IsRequired()
+                    b.Property<Guid>("SubjectId")
                         .HasColumnType("uuid");
 
                     b.Property<Guid>("TeacherId")
@@ -171,10 +172,10 @@ namespace TimejApi.Migrations
 
                     b.HasIndex("TeacherId");
 
-                    b.HasIndex("Date", "LessonNumber", "AuditoryId")
+                    b.HasIndex("Date", "Number", "AuditoryId")
                         .IsUnique();
 
-                    b.HasIndex("Date", "LessonNumber", "TeacherId")
+                    b.HasIndex("Date", "Number", "TeacherId")
                         .IsUnique();
 
                     b.ToTable("Lessons");

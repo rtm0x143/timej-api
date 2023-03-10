@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics.CodeAnalysis;
 using TimejApi.Data.Dtos;
+using TimejApi.Data.Entities;
+using TimejApi.Services;
 
 namespace TimejApi.Controllers
 {
@@ -9,20 +11,23 @@ namespace TimejApi.Controllers
     [Route("api/schedule")]
     public class ScheduleController : Controller
     {
-        /// <summary>
-        /// [NOT IMPLEMENTED]
-        /// </summary>
+        private readonly ISchedule _schedule;
+
+        public ScheduleController(ISchedule schedule)
+        {
+            _schedule = schedule;
+        }
+
         [HttpGet]
         public async Task<ActionResult<ScheduleDay[]>> Get(
             [FromQuery] DateOnly beginDate,
             [FromQuery] DateOnly endDate,
-            [FromQuery] uint? groupNumber,
+            [FromQuery] Guid? groupNumber,
             [FromQuery] Guid? teacherId,
-            [FromQuery][NotNullIfNotNull(nameof(buildingNumber))] uint? auditoryNumber,
-            [FromQuery][NotNullIfNotNull(nameof(auditoryNumber))] uint? buildingNumber,
+            [FromQuery] Guid? auditoryId,
             [FromQuery] bool isOnline = false)
         {
-            throw new NotImplementedException();
+                return Ok(await _schedule.Get(beginDate, endDate, groupNumber, teacherId, auditoryId, isOnline));
         }
 
         /// <summary>
@@ -37,36 +42,82 @@ namespace TimejApi.Controllers
         }
 
         /// <summary>
-        /// [NOT IMPLEMENTED]
+        /// Create lessons in a range
         /// </summary>
         [HttpPost]
         // TODO: Add policy [Authorize(Policy = "SheduleEditor")]
         public async Task<ActionResult<LessonDto>> Post(LessonCreation lesson, [FromQuery] DateOnly? beginDate,
             [FromQuery] DateOnly? endDate)
         {
-            throw new NotImplementedException();
+            try
+            {
+                return Ok(await _schedule.CreateLessons(lesson, beginDate, endDate));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
-        /// <summary>
-        /// [NOT IMPLEMENTED]
-        /// </summary>
+        [HttpPut("replica/{id}")]
+        // TODO: Add policy [Authorize(Policy = "SheduleEditor")]
+        public async Task<ActionResult<LessonDto>> Put(Guid replicaId, LessonCreation lesson)
+        {
+            try
+            {
+                return Ok(await _schedule.EditLessons(replicaId, lesson));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpDelete("replica/{id}")]
+        // TODO: Add policy [Authorize(Policy = "SheduleEditor")]
+        public async Task<ActionResult> Delete(Guid replicaId)
+        {
+            try
+            {
+                await _schedule.DeleteLessons(replicaId);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
         [HttpPut("{id}")]
         // TODO: Add policy [Authorize(Policy = "SheduleEditor")]
-        public async Task<ActionResult<LessonDto>> Put(Guid id, LessonCreation lesson, [FromQuery] DateOnly? beginDate,
-            [FromQuery] DateOnly? endDate)
+        public async Task<ActionResult<LessonDto>> PutSingle(Guid id, LessonCreation lesson)
         {
-            throw new NotImplementedException();
+            try
+            {
+                return Ok(await _schedule.EditSingle(id, lesson));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         /// <summary>
-        /// [NOT IMPLEMENTED]
+        /// Delete single lesson by id
         /// </summary>
         [HttpDelete("{id}")]
         // TODO: Add policy [Authorize(Policy = "SheduleEditor")]
-        public async Task<ActionResult> Delete(Guid id, LessonCreation lesson, [FromQuery] DateOnly? beginDate,
-            [FromQuery] DateOnly? endDate)
+        public async Task<ActionResult> DeleteSingle(Guid id)
         {
-            throw new NotImplementedException();
+            try
+            {
+                await _schedule.DeleteSingle(id);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
     }
 }
