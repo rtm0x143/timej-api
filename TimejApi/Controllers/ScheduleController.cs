@@ -48,9 +48,9 @@ namespace TimejApi.Controllers
         {
             User.TryGetIdentifierAsGuid(out var guid);
 
-            var userData = await  _userService.TryGet(guid);
-            if (userData == null) { return NotFound($"User with id {guid} not found");}
-            if(userData.StudentGroup is not null)
+            var userData = await _userService.TryGet(guid);
+            if (userData == null) { return NotFound($"User with id {guid} not found"); }
+            if (userData.StudentGroup is not null)
             {
                 return Ok(await _scheduleService.Get(beginDate, endDate, userData.StudentGroup.Id, null, null));
             }
@@ -62,11 +62,12 @@ namespace TimejApi.Controllers
         /// </summary>
         [HttpPost]
         public async Task<ActionResult<LessonDto>> Post(LessonCreation lesson, [FromQuery] DateOnly? beginDate,
-            [FromQuery] DateOnly? endDate)
+            [FromQuery] DateOnly? endDate, uint repeatInterval)
         {
             if (!(await _authorizationService.AuthorizeAsync(User, lesson.AttendingGroups.Select(x => x.GroupId), "ScheduleEditor")).Succeeded)
             {
-                return Forbid("You don't have enough permissions to perform this action");
+                return Problem(statusCode: StatusCodes.Status403Forbidden,
+                               detail: "You don't have enough permissions to perform this action");
             }
             if (await _userService.IsTeacher(lesson.TeacherId))
             {
@@ -74,7 +75,7 @@ namespace TimejApi.Controllers
             }
             try
             {
-                return Ok(await _scheduleService.CreateLessons(lesson, beginDate, endDate));
+                return Ok(await _scheduleService.CreateLessons(lesson, beginDate, endDate,repeatInterval));
             }
             catch (Exception ex)
             {
@@ -87,7 +88,8 @@ namespace TimejApi.Controllers
         {
             if (!(await _authorizationService.AuthorizeAsync(User, lesson.AttendingGroups.Select(x => x.GroupId), "ScheduleEditor")).Succeeded)
             {
-                return Forbid("You don't have enough permissions to perform this action");
+                return Problem(statusCode: StatusCodes.Status403Forbidden,
+                               detail: "You don't have enough permissions to perform this action");
             }
             if (await _userService.IsTeacher(lesson.TeacherId))
             {
@@ -109,7 +111,8 @@ namespace TimejApi.Controllers
             var groups = await _scheduleService.GetAttendingGroups(replicaId);
             if (!(await _authorizationService.AuthorizeAsync(User, groups, "ScheduleEditor")).Succeeded)
             {
-                return Forbid("You don't have enough permissions to perform this action");
+                return Problem(statusCode: StatusCodes.Status403Forbidden,
+                               detail: "You don't have enough permissions to perform this action");
             }
             try
             {
@@ -127,7 +130,7 @@ namespace TimejApi.Controllers
         {
             if (!(await _authorizationService.AuthorizeAsync(User, lesson.AttendingGroups.Select(x => x.GroupId), "ScheduleEditor")).Succeeded)
             {
-                return Forbid("You don't have enough permissions to perform this action");
+                return Problem(statusCode: StatusCodes.Status403Forbidden, detail: "You don't have enough permissions to perform this action");
             }
             if (await _userService.IsTeacher(lesson.TeacherId))
             {
@@ -150,9 +153,9 @@ namespace TimejApi.Controllers
         public async Task<ActionResult> DeleteSingle(Guid id)
         {
             var groups = await _scheduleService.GetAttendingGroups(id);
-            if(!(await _authorizationService.AuthorizeAsync(User, groups, "ScheduleEditor")).Succeeded)
+            if (!(await _authorizationService.AuthorizeAsync(User, groups, "ScheduleEditor")).Succeeded)
             {
-                return Forbid("You don't have enough permissions to perform this action");
+                return Problem(statusCode: StatusCodes.Status403Forbidden, detail: "You don't have enough permissions to perform this action");
             }
             try
             {

@@ -108,10 +108,10 @@ namespace TimejApi.Services
             var result = await _dbContext.Lessons.Where(x => x.Id == id).ExecuteDeleteAsync();
         }
 
-        public async Task<LessonDto[]> CreateLessons(LessonCreation lesson, DateOnly? beginDate, DateOnly? endDate)
+        public async Task<LessonDto[]> CreateLessons(LessonCreation lesson, DateOnly? beginDate, DateOnly? endDate, uint repeatInterval)
         {
 
-            if (beginDate is null && endDate is null)
+            if (beginDate is null && endDate is null || repeatInterval == 0)
             {
                 return new LessonDto[] { await CreateSingle(lesson) };
             }
@@ -133,22 +133,17 @@ namespace TimejApi.Services
                     throw new ArgumentException($"The lesson tried to add on {lesson.Date} in {lesson.LessonNumber} timeslot has collisions");
                 }
                 var newLesson = lesson.Adapt<Lesson>();
-                newLesson.AttendingGroups = new List<LessonGroup>();
-                foreach (var group in lesson.AttendingGroups)
-                {
-                    newLesson.AttendingGroups.Add(group.Adapt<LessonGroup>());
-                }
                 newLesson.Date = day;
                 return newLesson;
             }
 
-
+            var step = DEFAULT_INTERVAL_DAYS * ((int)repeatInterval);
             var lessonsRange = new List<Lesson>();
-            for (DateOnly day = lesson.Date.AddDays(-DEFAULT_INTERVAL_DAYS); day >= beginDate; day = day.AddDays(-DEFAULT_INTERVAL_DAYS))
+            for (DateOnly day = lesson.Date.AddDays(-step); day >= beginDate; day = day.AddDays(-step))
             {
                 lessonsRange.Add(await ProcessLesson(day));
             }
-            for (DateOnly day = lesson.Date; day <= endDate; day = day.AddDays(DEFAULT_INTERVAL_DAYS))
+            for (DateOnly day = lesson.Date; day <= endDate; day = day.AddDays(step))
             {
                 lessonsRange.Add(await ProcessLesson(day));
             }
@@ -168,11 +163,6 @@ namespace TimejApi.Services
             }
             var _lesson = lesson.Adapt<Lesson>();
             _lesson.ReplicaId = Guid.NewGuid();
-            _lesson.AttendingGroups = new List<LessonGroup>();
-            foreach (var group in lesson.AttendingGroups)
-            {
-                _lesson.AttendingGroups.Add(group.Adapt<LessonGroup>());
-            }
 
             await _dbContext.Lessons.AddAsync(_lesson);
             await _dbContext.SaveChangesAsync();

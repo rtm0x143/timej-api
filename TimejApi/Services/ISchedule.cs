@@ -15,7 +15,7 @@ namespace TimejApi.Services
         Task DeleteSingle(Guid id);
 
         Task<LessonDto[]> CreateLessons(LessonCreation lesson, DateOnly? beginDate,
-                DateOnly? endDate);
+                DateOnly? endDate, uint repeatInterval=1);
         Task<ScheduleDay[]> Get(
             DateOnly beginDate,
             DateOnly endDate,
