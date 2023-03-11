@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
 using TimejApi.Data.Dtos;
 using TimejApi.Data.Entities;
 using TimejApi.Helpers;
@@ -63,8 +64,11 @@ namespace TimejApi.Controllers
         public async Task<ActionResult<LessonDto>> Post(LessonCreation lesson, [FromQuery] DateOnly? beginDate,
             [FromQuery] DateOnly? endDate)
         {
-            await _authorizationService.AuthorizeAsync(User, lesson.AttendingGroups.Select(x => x.GroupId), "ScheduleEditor");
-            if(await _userService.IsTeacher(lesson.TeacherId))
+            if (!(await _authorizationService.AuthorizeAsync(User, lesson.AttendingGroups.Select(x => x.GroupId), "ScheduleEditor")).Succeeded)
+            {
+                return Forbid("You don't have enough permissions to perform this action");
+            }
+            if (await _userService.IsTeacher(lesson.TeacherId))
             {
                 return BadRequest($"Teacher with id {lesson.TeacherId} is invalid");
             }
@@ -81,7 +85,10 @@ namespace TimejApi.Controllers
         [HttpPut("replica/{id}")]
         public async Task<ActionResult<LessonDto>> Put(Guid replicaId, LessonCreation lesson)
         {
-            await _authorizationService.AuthorizeAsync(User, lesson.AttendingGroups.Select(x => x.GroupId), "ScheduleEditor");
+            if (!(await _authorizationService.AuthorizeAsync(User, lesson.AttendingGroups.Select(x => x.GroupId), "ScheduleEditor")).Succeeded)
+            {
+                return Forbid("You don't have enough permissions to perform this action");
+            }
             if (await _userService.IsTeacher(lesson.TeacherId))
             {
                 return BadRequest($"Teacher with id {lesson.TeacherId} is invalid");
@@ -100,7 +107,10 @@ namespace TimejApi.Controllers
         public async Task<ActionResult> Delete(Guid replicaId)
         {
             var groups = await _scheduleService.GetAttendingGroups(replicaId);
-            await _authorizationService.AuthorizeAsync(User, groups, "ScheduleEditor");
+            if (!(await _authorizationService.AuthorizeAsync(User, groups, "ScheduleEditor")).Succeeded)
+            {
+                return Forbid("You don't have enough permissions to perform this action");
+            }
             try
             {
                 await _scheduleService.DeleteLessons(replicaId);
@@ -115,7 +125,10 @@ namespace TimejApi.Controllers
         [HttpPut("{id}")]
         public async Task<ActionResult<LessonDto>> PutSingle(Guid id, LessonCreation lesson)
         {
-            await _authorizationService.AuthorizeAsync(User, lesson.AttendingGroups.Select(x => x.GroupId), "ScheduleEditor");
+            if (!(await _authorizationService.AuthorizeAsync(User, lesson.AttendingGroups.Select(x => x.GroupId), "ScheduleEditor")).Succeeded)
+            {
+                return Forbid("You don't have enough permissions to perform this action");
+            }
             if (await _userService.IsTeacher(lesson.TeacherId))
             {
                 return BadRequest($"Teacher with id {lesson.TeacherId} is invalid");
@@ -137,7 +150,10 @@ namespace TimejApi.Controllers
         public async Task<ActionResult> DeleteSingle(Guid id)
         {
             var groups = await _scheduleService.GetAttendingGroups(id);
-            await _authorizationService.AuthorizeAsync(User, groups, "ScheduleEditor");
+            if(!(await _authorizationService.AuthorizeAsync(User, groups, "ScheduleEditor")).Succeeded)
+            {
+                return Forbid("You don't have enough permissions to perform this action");
+            }
             try
             {
                 await _scheduleService.DeleteSingle(id);
