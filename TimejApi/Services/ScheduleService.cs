@@ -46,8 +46,7 @@ namespace TimejApi.Services
             var result = new List<ScheduleDay>();
             foreach (var (day, schedule) in timetable)
             {
-                //TODO maybe remove UNSPECIFIED in LessonNumber enum, to not perform -1
-                var dailySchedule = new LessonDto[Enum.GetNames(typeof(LessonNumber)).Length - 1];
+                var dailySchedule = new LessonDto[Enum.GetNames(typeof(LessonNumber)).Length];
                 foreach (var lesson in schedule)
                 {
                     var slot = (int)lesson.LessonNumber;
