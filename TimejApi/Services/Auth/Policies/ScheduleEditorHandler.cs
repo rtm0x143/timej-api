@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.JsonWebTokens;
 using TimejApi.Data;
 using TimejApi.Data.Dtos;
+using TimejApi.Helpers;
 
 namespace TimejApi.Services.Auth.Policies
 {
@@ -32,9 +33,8 @@ namespace TimejApi.Services.Auth.Policies
                 context.Succeed(requirement);
                 return;
             }
-
-            if (context.User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value is not string sub
-                || Guid.TryParse(sub, out var userId))
+            
+            if (!context.User.TryGetIdentifierAsGuid(out var userId))
             {
                 context.Fail(new AuthorizationFailureReason(this, "User's claim 'sub' was invalid or unspecified"));
                 return;

@@ -14,6 +14,8 @@ using Microsoft.AspNetCore.Identity;
 using System.IdentityModel.Tokens.Jwt;
 using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Authorization;
+using Prometheus;
+using TimejApi.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -92,7 +94,12 @@ builder.Services.AddDbContext<ScheduleDbContext>(options =>
     options.UseExceptionProcessor();
 });
 
+builder.Services.AddSingleton<MetricReporter>();
+
 var app = builder.Build();
+
+app.UseMetricServer();
+app.UseMiddleware<ResponseMetric>();
 
 var contextOptionsBuilder = new DbContextOptionsBuilder<ScheduleDbContext>().UseNpgsql(connectionString);
 using (var context = new ScheduleDbContext(contextOptionsBuilder.Options))
