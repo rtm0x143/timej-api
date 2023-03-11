@@ -8,6 +8,7 @@ namespace TimejApi.Services.User
 {
     public interface IUserService : IDbContextWrap<ScheduleDbContext>
     {
+        public ValueTask<bool> IsTeacher(Guid id);
         public ValueTask<UserEntity?> TryGet(Guid id);
         public ValueTask<UserEntity[]> QueryUsers(Guid? groudId, string? email, UserEntity.Role? role);
         public ValueTask<UserEntity> Register(UserRegister userRegister);

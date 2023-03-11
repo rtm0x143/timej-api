@@ -129,4 +129,9 @@ public class UserService : IUserService
                         && (groupId == null || u.StudentGroup != null && u.StudentGroup.Id == groupId)
                         && (role == null || u.Roles.FirstOrDefault(userRole => userRole.Role == role) != null))
             .ToArrayAsync());
+
+    public async ValueTask<bool> IsTeacher(Guid id)
+    {
+        return await DbContext.UserRoles.Where(x => x.UserId == id).Select(x => x.Role).ContainsAsync(UserEntity.Role.TEACHER);
+    }
 }

@@ -7,7 +7,6 @@ namespace TimejApi.Data.Entities
     public enum LessonNumber
     {
         //Ordering of the lesson in a schedule
-        UNSPECIFIED,
         First,
         Second,
         Third,

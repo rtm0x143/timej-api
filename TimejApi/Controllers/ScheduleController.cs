@@ -64,6 +64,10 @@ namespace TimejApi.Controllers
             [FromQuery] DateOnly? endDate)
         {
             await _authorizationService.AuthorizeAsync(User, lesson.AttendingGroups.Select(x => x.GroupId), "ScheduleEditor");
+            if(await _userService.IsTeacher(lesson.TeacherId))
+            {
+                return BadRequest($"Teacher with id {lesson.TeacherId} is invalid");
+            }
             try
             {
                 return Ok(await _scheduleService.CreateLessons(lesson, beginDate, endDate));
@@ -78,6 +82,10 @@ namespace TimejApi.Controllers
         public async Task<ActionResult<LessonDto>> Put(Guid replicaId, LessonCreation lesson)
         {
             await _authorizationService.AuthorizeAsync(User, lesson.AttendingGroups.Select(x => x.GroupId), "ScheduleEditor");
+            if (await _userService.IsTeacher(lesson.TeacherId))
+            {
+                return BadRequest($"Teacher with id {lesson.TeacherId} is invalid");
+            }
             try
             {
                 return Ok(await _scheduleService.EditLessons(replicaId, lesson));
@@ -108,6 +116,10 @@ namespace TimejApi.Controllers
         public async Task<ActionResult<LessonDto>> PutSingle(Guid id, LessonCreation lesson)
         {
             await _authorizationService.AuthorizeAsync(User, lesson.AttendingGroups.Select(x => x.GroupId), "ScheduleEditor");
+            if (await _userService.IsTeacher(lesson.TeacherId))
+            {
+                return BadRequest($"Teacher with id {lesson.TeacherId} is invalid");
+            }
             try
             {
                 return Ok(await _scheduleService.EditSingle(id, lesson));
