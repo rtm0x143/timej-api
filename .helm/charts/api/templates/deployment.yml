@@ -34,11 +34,3 @@ spec:
             limits:
               memory: "150Mi"
               cpu: "100m"
-          securityContext:
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop:
-                - ALL
-            privileged: false
-            readOnlyRootFilesystem: false
-            runAsNonRoot: false
