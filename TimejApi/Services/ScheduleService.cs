@@ -217,10 +217,9 @@ namespace TimejApi.Services
             return this;
         }
 
-        public LessonQuerry SpecifyTimeSlot(uint timeSlot)
+        public LessonQuerry SpecifyTimeSlot(LessonNumber timeSlot)
         {
-            LessonNumber slotEnum = (LessonNumber)Enum.ToObject(typeof(LessonNumber), timeSlot);
-            _lessons = _lessons.Where(x => x.LessonNumber == slotEnum);
+            _lessons = _lessons.Where(x => x.LessonNumber == timeSlot);
             return this;
         }
         public LessonQuerry SpecifyTeacher(Guid? teacherId)
