@@ -38,6 +38,7 @@ builder.Services.AddAuthorization(configure =>
     {
         configurePolicy.RequireRole(nameof(User.Role.SCHEDULE_EDITOR), nameof(User.Role.MODERATOR));
         configurePolicy.AddRequirements(new FacultyEditorRequirement());
+        configurePolicy.AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme);
     });
 });
 builder.Services.AddScoped<ISchedule,ScheduleService>();

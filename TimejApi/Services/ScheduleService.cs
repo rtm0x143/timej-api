@@ -91,6 +91,7 @@ namespace TimejApi.Services
                 throw new ArgumentException($"The lesson tried to be moved to {lesson.Date} in {lesson.LessonNumber} timeslot has collisions");
             }
             lesson.Adapt(_lesson);
+            _lesson.ReplicaId = Guid.NewGuid();
             try
             {
                 await _dbContext.SaveChangesAsync();
