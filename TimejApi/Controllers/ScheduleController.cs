@@ -96,24 +96,31 @@ namespace TimejApi.Controllers
                 return Problem(statusCode: StatusCodes.Status403Forbidden,
                                detail: "You don't have enough permissions to perform this action");
             }
+
             if (!await _userService.IsTeacher(lesson.TeacherId))
             {
                 return BadRequest($"Teacher with id {lesson.TeacherId} is invalid");
             }
-            try
+
+            var result = await _scheduleService.EditLessons(replicaId, lesson);
+            if (result.Unpack(out var newLesson, out var ex)) return Ok(newLesson.Adapt<LessonDto>());
+            return ex switch
             {
-                return Ok(await _scheduleService.EditLessons(replicaId, lesson));
-            }
-            catch
-            {
-                return BadRequest("Data you tried to insert was invalid");
-            }
+                KeyNotFoundException => NotFound(),
+                ArgumentException => BadRequest(ex.Message),
+                _ => BadRequest("Data you tried to insert was invalid") // it should be 500 but i left it to support prev versions
+            };
         }
 
         [HttpDelete("replica/{id}")]
         public async Task<ActionResult> Delete(Guid replicaId)
         {
-            var groups = await _scheduleService.GetAttendingGroups(replicaId);
+            var result = await _scheduleService.GetAttendingGroupsByReplica(replicaId);
+            if (!result.Unpack(out var groups, out var ex))
+            {
+                return ex is KeyNotFoundException ? NotFound() : Problem();
+            }
+
             if (!(await _authorizationService.AuthorizeAsync(User, groups, "ScheduleEditor")).Succeeded)
             {
                 return Problem(statusCode: StatusCodes.Status403Forbidden,
@@ -141,11 +148,15 @@ namespace TimejApi.Controllers
             {
                 return BadRequest($"Teacher with id {lesson.TeacherId} is invalid");
             }
-            try
+
+            var result = await _scheduleService.EditSingle(id, lesson);
+            if (result.Unpack(out var newLesson, out var ex)) return Ok(newLesson.Adapt<LessonDto>());
+            return ex switch
             {
-                return Ok(await _scheduleService.EditSingle(id, lesson));
-            }
-            catch { return BadRequest("Data you tried to insert was invalid"); }
+                KeyNotFoundException => NotFound(),
+                ArgumentException => BadRequest(ex.Message),
+                _ => BadRequest("Data you tried to insert was invalid") // it should be 500 but i left it to support prev versions
+            };
         }
 
         /// <summary>
@@ -154,7 +165,12 @@ namespace TimejApi.Controllers
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteSingle(Guid id)
         {
-            var groups = await _scheduleService.GetAttendingGroups(id);
+            var result = await _scheduleService.GetAttendingGroups(id);
+            if (!result.Unpack(out var groups, out var ex))
+            {
+                return ex is KeyNotFoundException ? NotFound() : Problem();
+            }
+
             if (!(await _authorizationService.AuthorizeAsync(User, groups, "ScheduleEditor")).Succeeded)
             {
                 return Problem(statusCode: StatusCodes.Status403Forbidden, detail: "You don't have enough permissions to perform this action");

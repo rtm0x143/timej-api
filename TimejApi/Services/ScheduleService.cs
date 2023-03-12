@@ -6,6 +6,7 @@ using TimejApi.Data;
 using TimejApi.Data.Dtos;
 using TimejApi.Data.Entities;
 using TimejApi.Helpers.Types;
+using EntityFramework.Exceptions.Common;
 
 namespace TimejApi.Services
 {
@@ -21,27 +22,39 @@ namespace TimejApi.Services
             _dbContext = dbContext;
         }
 
-
-        public async Task<LessonDto[]> EditLessons(Guid replicaId, LessonEdit lesson)
+        public async Task<Result<Lesson, Exception>> EditLessons(Guid replicaId, LessonEdit lesson)
         {
-            var lessons = await _dbContext.Lessons.Where(x => x.ReplicaId == replicaId).ToListAsync();
+            var lessons = await _dbContext.Lessons.Where(x => x.ReplicaId == replicaId)
+                .Include(l => l.AttendingGroups)
+                .ToListAsync();
+
+            if (lessons.IsNullOrEmpty()) return new(new KeyNotFoundException(nameof(replicaId)));
 
             foreach (var item in lessons)
             {
                 lesson.Adapt(item);
                 item.Date.AddDays(lesson.ShiftDays);
                 if (await CheckCollisions(item))
-                {
-                    throw new ArgumentException($"The lesson tried to be moved to {item.Date} in {lesson.LessonNumber} timeslot has collisions");
-                }
+                    return new(new ArgumentException($"The lesson tried to be moved to {item.Date} in {item.LessonNumber} timeslot has collisions"));
             }
-            await _dbContext.SaveChangesAsync();
-            return lessons.Select(x => x.Adapt<LessonDto>()).ToArray();
+
+            try
+            {
+                await _dbContext.SaveChangesAsync();
+            }
+            catch (ReferenceConstraintException ex) 
+            {
+                return new(new ArgumentException($"Data in new lesson contains incorrect relations", ex));
+            }
+            catch (Exception ex) { return new(ex); }
+
+            return new(await new LessonQuerry(_dbContext.Lessons)
+                .GetEnriched()
+                .FirstAsync(l => l.ReplicaId == replicaId));
         }
 
         public async Task<ScheduleDay[]> Get(DateOnly beginDate, DateOnly endDate, Guid? groupNumber, Guid? teacherId, Guid? auditoryId, bool isOnline)
         {
-
             var query = new LessonQuerry(_dbContext.Lessons);
             var timetable = await query.SpecifyDate(beginDate, endDate).SpecifyGroup(groupNumber).SpecifyPlace(auditoryId, isOnline)
                 .SpecifyTeacher(teacherId).GetEnriched().OrderBy(x => x.LessonNumber).GroupBy(x => x.Date).ToDictionaryAsync(x => x.Key, x => x.ToArray());
@@ -84,26 +97,32 @@ namespace TimejApi.Services
             await _dbContext.Lessons.Where(x => x.ReplicaId == replicaId).ExecuteDeleteAsync();
         }
 
-        public async Task<LessonDto> EditSingle(Guid id, LessonEdit lesson)
+        public async Task<Result<Lesson, Exception>> EditSingle(Guid id, LessonEdit lessonEdit)
         {
-            var _lesson = await _dbContext.Lessons.FindAsync(id) ?? throw new KeyNotFoundException($"Attempt to edit non-existent lesson with id {id}");
-            lesson.Adapt(_lesson);
-            _lesson.ReplicaId = Guid.NewGuid();
-            _lesson.Date.AddDays(lesson.ShiftDays);
-            if (await CheckCollisions(_lesson))
-            {
-                throw new ArgumentException($"The lesson tried to be moved to {_lesson.Date} in {_lesson.LessonNumber} timeslot has collisions");
-            }
+            var lesson = await new LessonQuerry(_dbContext.Lessons)
+                .GetEnriched()
+                .FirstOrDefaultAsync(l => l.Id == id);
+
+            if (lesson == null) return new(new KeyNotFoundException(nameof(id)));
+
+            lessonEdit.Adapt(lesson);
+            lesson.ReplicaId = Guid.NewGuid();
+            lesson.Date.AddDays(lessonEdit.ShiftDays);
+
+            if (await CheckCollisions(lesson))
+                return new(new ArgumentException($"The lesson tried to be moved to {lesson.Date} in {lesson.LessonNumber} timeslot has collisions"));
+
             try
             {
                 await _dbContext.SaveChangesAsync();
-                return _lesson.Adapt<LessonDto>();
+                return new(lesson);
             }
-            catch (DbUpdateException e)
+            catch (ReferenceConstraintException e)
             {
                 _logger.LogInformation($"Error updating lesson with ID {id}. The exception was caused by {e.Entries[0].Entity.GetType().Name}");
-                throw new ArgumentException($"Data in new lesson contains incorrect relations", e);
+                return new(new ArgumentException($"Data in new lesson contains incorrect relations", e));
             }
+            catch(Exception e) { return new(e); }
         }
 
         public async Task DeleteSingle(Guid id)
@@ -174,14 +193,22 @@ namespace TimejApi.Services
             return _lesson.Adapt<LessonDto>();
         }
 
-        public async Task<Guid[]> GetAttendingGroupsByReplica(Guid replicaId)
+        public async Task<Result<Guid[], Exception>> GetAttendingGroupsByReplica(Guid replicaId)
         {
-            return (await _dbContext.Lessons.Include(x => x.AttendingGroups).FirstAsync(x => x.ReplicaId == replicaId)).AttendingGroups.Select(x => x.GroupId).ToArray();
+            var lesson = await _dbContext.Lessons.Include(x => x.AttendingGroups)
+                .FirstOrDefaultAsync(x => x.ReplicaId == replicaId);
+
+            if (lesson == null) return new(new KeyNotFoundException(nameof(replicaId)));
+            return new(lesson.AttendingGroups.Select(x => x.GroupId).ToArray());
         }
 
-        public async Task<Guid[]> GetAttendingGroups(Guid id)
+        public async Task<Result<Guid[], Exception>> GetAttendingGroups(Guid id)
         {
-            return (await _dbContext.Lessons.Include(x => x.AttendingGroups).FirstAsync(x => x.Id == id)).AttendingGroups.Select(x => x.GroupId).ToArray();
+            var lesson = await _dbContext.Lessons.Include(x => x.AttendingGroups)
+                .FirstOrDefaultAsync(x => x.Id == id);
+
+            if (lesson == null) return new(new KeyNotFoundException(nameof(id)));
+            return new(lesson.AttendingGroups.Select(x => x.GroupId).ToArray());
         }
     }
 
