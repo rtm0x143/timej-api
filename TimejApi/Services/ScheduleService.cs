@@ -111,12 +111,12 @@ namespace TimejApi.Services
             var result = await _dbContext.Lessons.Where(x => x.Id == id).ExecuteDeleteAsync();
         }
 
-        public async Task<LessonDto[]> CreateLessons(LessonCreation lesson, DateOnly? beginDate, DateOnly? endDate, uint repeatInterval)
+        public async Task<LessonDto> CreateLessons(LessonCreation lesson, DateOnly? beginDate, DateOnly? endDate, uint repeatInterval)
         {
 
             if (beginDate is null && endDate is null || repeatInterval == 0)
             {
-                return new LessonDto[] { await CreateSingle(lesson) };
+                return await CreateSingle(lesson);
             }
             else if (beginDate is null || endDate is null)
             {
@@ -141,20 +141,23 @@ namespace TimejApi.Services
             }
 
             var step = DEFAULT_INTERVAL_DAYS * ((int)repeatInterval);
+            var originalLesson = await ProcessLesson(lesson.Date);
             var lessonsRange = new List<Lesson>();
             for (DateOnly day = lesson.Date.AddDays(-step); day >= beginDate; day = day.AddDays(-step))
             {
                 lessonsRange.Add(await ProcessLesson(day));
             }
-            for (DateOnly day = lesson.Date; day <= endDate; day = day.AddDays(step))
+            for (DateOnly day = lesson.Date.AddDays(step); day <= endDate; day = day.AddDays(step))
             {
                 lessonsRange.Add(await ProcessLesson(day));
             }
-
+            lessonsRange.Add(originalLesson);
             var replicaId = Guid.NewGuid();
             await _dbContext.Lessons.AddRangeAsync(lessonsRange.Select(x => { x.ReplicaId = replicaId; return x; }));
             await _dbContext.SaveChangesAsync();
-            return lessonsRange.Select(x => x.Adapt<LessonDto>()).ToArray();
+
+            var lessonSample = (new LessonQuerry(_dbContext.Lessons)).GetEnriched().FirstAsync(x => x.Id == originalLesson.Id);
+            return lessonSample.Adapt<LessonDto>();
         }
 
         private async Task<LessonDto> CreateSingle(LessonCreation lesson)
@@ -165,7 +168,7 @@ namespace TimejApi.Services
             if (isCollided)
             {
                 throw new ArgumentException($"The lesson tried to be added on {lesson.Date} in {lesson.LessonNumber} timeslot has collisions");
-            }            
+            }
             await _dbContext.Lessons.AddAsync(_lesson);
             await _dbContext.SaveChangesAsync();
             return _lesson.Adapt<LessonDto>();
