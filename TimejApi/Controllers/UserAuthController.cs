@@ -73,8 +73,9 @@ namespace TimejApi.Controllers
             if (user == null) return NotFound();
 
             var newJwt = _jwtAuthentication.BuildToken(user.CreateClaims());
-            return Ok(new AuthResult(_jwtAuthentication.WriteToken(newJwt),
-                await _refresh.CreateRefreshTokenFor(user.Id, accessId)));
+            var newRefresh = await _refresh.CreateRefreshTokenFor(user.Id, Guid.Parse(newJwt.Id));
+            return Ok(new AuthResult(_jwtAuthentication.WriteToken(newJwt), newRefresh));
+
         }
 
         /// <summary>
