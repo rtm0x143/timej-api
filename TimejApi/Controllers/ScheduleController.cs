@@ -69,7 +69,7 @@ namespace TimejApi.Controllers
                 return Problem(statusCode: StatusCodes.Status403Forbidden,
                                detail: "You don't have enough permissions to perform this action");
             }
-            if (await _userService.IsTeacher(lesson.TeacherId))
+            if (!await _userService.IsTeacher(lesson.TeacherId))
             {
                 return BadRequest($"Teacher with id {lesson.TeacherId} is invalid");
             }
@@ -91,7 +91,7 @@ namespace TimejApi.Controllers
                 return Problem(statusCode: StatusCodes.Status403Forbidden,
                                detail: "You don't have enough permissions to perform this action");
             }
-            if (await _userService.IsTeacher(lesson.TeacherId))
+            if (!await _userService.IsTeacher(lesson.TeacherId))
             {
                 return BadRequest($"Teacher with id {lesson.TeacherId} is invalid");
             }
@@ -132,7 +132,7 @@ namespace TimejApi.Controllers
             {
                 return Problem(statusCode: StatusCodes.Status403Forbidden, detail: "You don't have enough permissions to perform this action");
             }
-            if (await _userService.IsTeacher(lesson.TeacherId))
+            if (!await _userService.IsTeacher(lesson.TeacherId))
             {
                 return BadRequest($"Teacher with id {lesson.TeacherId} is invalid");
             }
