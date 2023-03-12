@@ -151,8 +151,8 @@ namespace TimejApi.Services
                 lessonsRange.Add(await ProcessLesson(day));
             }
 
-
-            await _dbContext.Lessons.AddRangeAsync(lessonsRange.Select(x => { x.ReplicaId = Guid.NewGuid(); return x; }));
+            var replicaId = Guid.NewGuid();
+            await _dbContext.Lessons.AddRangeAsync(lessonsRange.Select(x => { x.ReplicaId = replicaId; return x; }));
             await _dbContext.SaveChangesAsync();
             return lessonsRange.Select(x => x.Adapt<LessonDto>()).ToArray();
         }
