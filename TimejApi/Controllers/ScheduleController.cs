@@ -1,6 +1,7 @@
 ﻿using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
 using TimejApi.Data.Dtos;
@@ -77,7 +78,11 @@ namespace TimejApi.Controllers
             {
                 return Ok(await _scheduleService.CreateLessons(lesson, beginDate, endDate, repeatInterval));
             }
-            catch
+            catch( ArgumentException e)
+            {
+                return BadRequest(e.Message);
+            }
+            catch ( DbUpdateException e )
             {
                 return BadRequest("Data you tried to insert was invalid");
             }
