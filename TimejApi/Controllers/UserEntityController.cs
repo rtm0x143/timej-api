@@ -105,7 +105,7 @@ namespace TimejApi.Controllers
         /// </summary>
         /// <param name="groupId">Filter by group</param>
         /// <param name="email">Get concrete user by email</param>
-        /// <param name="teacher">Filter by by teacher role</param>
+        /// <param name="role">Filter by role</param>
         /// <response code="400">When no filters were specified</response>
         /// <response code="403">
         /// Unauthorised user can only query teachers. 
@@ -115,22 +115,25 @@ namespace TimejApi.Controllers
         public async Task<ActionResult<UserDto[]>> QueryUsers(
             [FromQuery] Guid? groupId,
             [FromQuery][EmailAddress] string? email,
-            [FromQuery] bool teacher = false)
+            [FromQuery] UserRoles? role)
         {
-            if (groupId == null && email == null && !teacher) 
+            if (groupId == null && email == null && role == null) 
                 return Problem(statusCode: StatusCodes.Status400BadRequest,
                                title: "Invalid query",
                                detail: "No filtering variables were specified");
 
             if (!User.IsInRole(nameof(UserRoles.MODERATOR))
                 && !User.IsInRole(nameof(UserRoles.SCHEDULE_EDITOR))
-                && !teacher)
+                && (role == null 
+                    || role != UserRoles.TEACHER))
+            {
                 return Problem(statusCode: StatusCodes.Status403Forbidden,
                                title: "Forbidden",
-                               detail: "No filtering variables were specified");
+                               detail: "Caller can't execute that query");
+            }
 
             var users = await _userService
-                .QueryUsers(groupId, email, teacher ? UserRoles.TEACHER : null);
+                .QueryUsers(groupId, email, role);
 
             return users.Adapt<UserDto[]>();
         }

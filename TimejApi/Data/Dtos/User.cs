@@ -1,3 +1,4 @@
+using Microsoft.IdentityModel.Tokens;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using TimejApi.Data.Dtos;
@@ -42,6 +43,10 @@ public record UserData : UserPublicData, IValidatableObject
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
+        if (Roles.IsNullOrEmpty())
+        {
+            yield return new ValidationResult("User should be related to at least 1 Role", new[] { nameof(Roles) });
+        }
         if (Group != null && !Roles.Contains(User.Role.STUDENT))
         {
             yield return new ValidationResult("User related to some Group should also have \"STUDENT\" role", new[] { nameof(Roles), nameof(Group) });
