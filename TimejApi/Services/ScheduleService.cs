@@ -156,7 +156,7 @@ namespace TimejApi.Services
             await _dbContext.Lessons.AddRangeAsync(lessonsRange.Select(x => { x.ReplicaId = replicaId; return x; }));
             await _dbContext.SaveChangesAsync();
 
-            var lessonSample = (new LessonQuerry(_dbContext.Lessons)).GetEnriched().FirstAsync(x => x.Id == originalLesson.Id);
+            var lessonSample = await (new LessonQuerry(_dbContext.Lessons)).GetEnriched().FirstAsync(x => x.Id == originalLesson.Id);
             return lessonSample.Adapt<LessonDto>();
         }
 
