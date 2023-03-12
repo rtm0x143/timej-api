@@ -9,9 +9,9 @@ namespace TimejApi.Services
     {
         Task<Guid[]> GetAttendingGroupsByReplica(Guid replicaId);
         Task<Guid[]> GetAttendingGroups(Guid id);
-        Task<LessonDto[]> EditLessons(Guid replicaId, LessonCreation lesson);
+        Task<LessonDto[]> EditLessons(Guid replicaId, LessonEdit lesson);
         Task DeleteLessons(Guid replicaId);
-        Task<LessonDto> EditSingle(Guid id, LessonCreation lesson);
+        Task<LessonDto> EditSingle(Guid id, LessonEdit lesson);
         Task DeleteSingle(Guid id);
 
         Task<LessonDto[]> CreateLessons(LessonCreation lesson, DateOnly? beginDate,

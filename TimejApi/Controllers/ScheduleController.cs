@@ -75,16 +75,16 @@ namespace TimejApi.Controllers
             }
             try
             {
-                return Ok(await _scheduleService.CreateLessons(lesson, beginDate, endDate,repeatInterval));
+                return Ok(await _scheduleService.CreateLessons(lesson, beginDate, endDate, repeatInterval));
             }
-            catch (Exception ex)
+            catch
             {
-                return BadRequest(ex.Message);
+                return BadRequest("Data you tried to insert was invalid");
             }
         }
 
         [HttpPut("replica/{id}")]
-        public async Task<ActionResult<LessonDto>> Put(Guid replicaId, LessonCreation lesson)
+        public async Task<ActionResult<LessonDto>> Put(Guid replicaId, LessonEdit lesson)
         {
             if (!(await _authorizationService.AuthorizeAsync(User, lesson.AttendingGroups.Select(x => x.GroupId), "ScheduleEditor")).Succeeded)
             {
@@ -99,9 +99,9 @@ namespace TimejApi.Controllers
             {
                 return Ok(await _scheduleService.EditLessons(replicaId, lesson));
             }
-            catch (Exception ex)
+            catch
             {
-                return BadRequest(ex.Message);
+                return BadRequest("Data you tried to insert was invalid");
             }
         }
 
@@ -119,14 +119,14 @@ namespace TimejApi.Controllers
                 await _scheduleService.DeleteLessons(replicaId);
                 return Ok();
             }
-            catch (Exception ex)
+            catch
             {
-                return BadRequest(ex.Message);
+                return BadRequest("Data you tried to insert was invalid");
             }
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult<LessonDto>> PutSingle(Guid id, LessonCreation lesson)
+        public async Task<ActionResult<LessonDto>> PutSingle(Guid id, LessonEdit lesson)
         {
             if (!(await _authorizationService.AuthorizeAsync(User, lesson.AttendingGroups.Select(x => x.GroupId), "ScheduleEditor")).Succeeded)
             {
@@ -140,10 +140,7 @@ namespace TimejApi.Controllers
             {
                 return Ok(await _scheduleService.EditSingle(id, lesson));
             }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            catch { return BadRequest("Data you tried to insert was invalid"); }
         }
 
         /// <summary>
@@ -162,10 +159,7 @@ namespace TimejApi.Controllers
                 await _scheduleService.DeleteSingle(id);
                 return Ok();
             }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            catch { return BadRequest("Data you tried to insert was invalid"); }
         }
     }
 }

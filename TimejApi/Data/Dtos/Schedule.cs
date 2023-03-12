@@ -22,7 +22,11 @@ public record LessonDto(Guid Id, Guid ReplicaId, DateOnly Date, LessonNumber Les
 public record ScheduleDay(DateOnly Date, LessonDto[] Lessons);
 
 public record LessonGroupCreation(Guid GroupId, uint? SubGroupNumber);
+
 public record LessonCreation(DateOnly Date, LessonNumber LessonNumber, Guid LessonTypeId,
+    Guid SubjectId, LessonGroupCreation[] AttendingGroups, Guid TeacherId, Guid? AuditoryId);
+
+public record LessonEdit(int ShiftDays, LessonNumber LessonNumber, Guid LessonTypeId,
     Guid SubjectId, LessonGroupCreation[] AttendingGroups, Guid TeacherId, Guid? AuditoryId);
 
 public record BuildingCreation(uint Number, string Title, string? Address);
