@@ -50,7 +50,6 @@ namespace TimejApi.Services
                 foreach (var lesson in schedule)
                 {
                     var slot = (int)lesson.LessonNumber;
-
                     dailySchedule[slot] = lesson.Adapt<LessonDto>();
                 }
                 result.Add(new ScheduleDay(day, dailySchedule));
@@ -197,7 +196,7 @@ namespace TimejApi.Services
         public IQueryable<Lesson> GetEnriched()
         {
             return _lessons.Include(x => x.Teacher).
-                Include(x => x.Auditory).Include(x => x.AttendingGroups).
+                Include(x => x.Auditory).Include(x => x.AttendingGroups).ThenInclude(x => x.Group).
                 Include(x => x.Auditory).ThenInclude(x => x.Building).
                 Include(x => x.LessonType).Include(x => x.Subject);
         }

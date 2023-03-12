@@ -43,10 +43,11 @@ namespace TimejApi.Data.Mapping
 
             TypeAdapterConfig<Lesson, LessonDto>.NewConfig()
                 .Map(dest => dest.LessonNumber, src => src.LessonNumber)
-                .Map(dest => dest.Groups, src => src.AttendingGroups.Select(x => x.Group.Adapt<LessonGroupDto>()));
+                .Map(dest => dest.Groups, src => src.AttendingGroups.Select(x => x.Group.Adapt<SubgroupDto>()));
 
-            TypeAdapterConfig<LessonGroup, LessonGroupDto>.NewConfig()
-                .Map(dest => dest.GroupNumber, src => src.Group.GroupNumber);
+            TypeAdapterConfig<LessonGroup, SubgroupDto>.NewConfig()
+                .Map(dest => dest.GroupNumber, src => src.Group.GroupNumber)
+                .Map(dest=>dest.Id,src=>src.GroupId);
 
         }
     }
