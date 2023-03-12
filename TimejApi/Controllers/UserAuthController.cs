@@ -33,7 +33,7 @@ namespace TimejApi.Controllers
         [HttpPost("login")]
         public async Task<ActionResult<AuthResult>> Login(UserLogin userLogin)
         {
-            if (!(await _userService.TryLogin(userLogin)).Ensure(out var user, out var errors))
+            if (!(await _userService.TryLogin(userLogin)).Unpack(out var user, out var errors))
                 return ValidationProblem(statusCode: StatusCodes.Status401Unauthorized, modelStateDictionary: errors);
 
             var jwt = _jwtAuthentication.BuildToken(user.CreateClaims());
@@ -75,6 +75,7 @@ namespace TimejApi.Controllers
             var newJwt = _jwtAuthentication.BuildToken(user.CreateClaims());
             var newRefresh = await _refresh.CreateRefreshTokenFor(user.Id, Guid.Parse(newJwt.Id));
             return Ok(new AuthResult(_jwtAuthentication.WriteToken(newJwt), newRefresh));
+
         }
 
         /// <summary>

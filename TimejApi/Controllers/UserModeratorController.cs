@@ -45,7 +45,7 @@ public class UserModeratorController : ControllerBase
                            detail: "User should be in group SCHEDULE_EDITOR to recieve edit permissions");
 
         var result = await _editPermissonServile.TryGrantEditPermission(id , facultyId);
-        if (result.Ensure(out var faculties, out var exception)) return Ok(faculties.ToArray());
+        if (result.Unpack(out var faculties, out var exception)) return Ok(faculties.ToArray());
 
         return exception switch
         {
@@ -62,7 +62,7 @@ public class UserModeratorController : ControllerBase
         return _editPermissonServile.RevokeEditPermission(id, facultyId).AsTask()
             .ContinueWith<ActionResult>(t =>
             {
-                if (t.Result.Ensure(out var perm, out var exception)) return NoContent();
+                if (t.Result.Unpack(out var perm, out var exception)) return NoContent();
                 return exception switch
                 {
                     KeyNotFoundException => NotFound(),
@@ -120,7 +120,7 @@ public class UserModeratorController : ControllerBase
         User.TryGetIdentifierAsGuid(out var moderatorId);
         try
         {
-            if (!(await _userService.TryChangeUser(id, data)).Ensure(out var user, out var problem))
+            if (!(await _userService.TryChangeUser(id, data)).Unpack(out var user, out var problem))
                 return problem.ToActionResult();
 
             _logger.LogInformation("User ({}) has beed updated by Moderator ({})", user.Id, moderatorId);
@@ -148,7 +148,7 @@ public class UserModeratorController : ControllerBase
         if (!User.IdentifierEqualsOrInRole(id, nameof(UserRoles.MODERATOR))) return Forbid();
 
         var result = await _editPermissonServile.TryGetEditPermissions(id);
-        if (result.Ensure(out var faculties, out var exception)) return Ok(faculties);
+        if (result.Unpack(out var faculties, out var exception)) return Ok(faculties);
 
         return exception switch
         {
@@ -170,7 +170,7 @@ public class UserModeratorController : ControllerBase
         if (!User.TryGetIdentifierAsGuid(out var id)) return BadRequest();
 
         var result = await _editPermissonServile.TryGetEditPermissions(id);
-        if (result.Ensure(out var faculties, out var exception)) return Ok(faculties);
+        if (result.Unpack(out var faculties, out var exception)) return Ok(faculties);
 
         return exception switch
         {

@@ -13,6 +13,7 @@ using TimejApi.Services.User;
 using Microsoft.AspNetCore.Identity;
 using System.IdentityModel.Tokens.Jwt;
 using Microsoft.OpenApi.Models;
+using Microsoft.AspNetCore.Authorization;
 using Prometheus;
 using TimejApi.Middleware;
 
@@ -23,6 +24,7 @@ builder.Services.AddScoped<IRefreshTokenService, RefreshTokenService>();
 builder.Services.AddSingleton<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IEditPermissonService, EditPermissonService>();
+builder.Services.AddScoped<IAuthorizationHandler, ScheduleEditorHandler>();
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -38,6 +40,7 @@ builder.Services.AddAuthorization(configure =>
     {
         configurePolicy.RequireRole(nameof(User.Role.SCHEDULE_EDITOR), nameof(User.Role.MODERATOR));
         configurePolicy.AddRequirements(new FacultyEditorRequirement());
+        configurePolicy.AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme);
     });
 });
 builder.Services.AddScoped<ISchedule,ScheduleService>();
