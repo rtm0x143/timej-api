@@ -188,10 +188,10 @@ namespace TimejApi.Migrations
                     b.Property<Guid>("GroupId")
                         .HasColumnType("uuid");
 
-                    b.Property<long?>("SubgroupNumber")
+                    b.Property<long>("SubgroupNumber")
                         .HasColumnType("bigint");
 
-                    b.HasKey("LessonId", "GroupId");
+                    b.HasKey("LessonId", "GroupId", "SubgroupNumber");
 
                     b.HasIndex("GroupId");
 

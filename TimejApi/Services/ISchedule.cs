@@ -2,17 +2,24 @@
 using System.Diagnostics.CodeAnalysis;
 using TimejApi.Data.Dtos;
 using TimejApi.Data.Entities;
+using TimejApi.Helpers.Types;
 
 namespace TimejApi.Services
 {
     public interface ISchedule
     {
-        Task<Guid[]> GetAttendingGroupsByReplica(Guid replicaId);
-        Task<Guid[]> GetAttendingGroups(Guid id);
-        Task<LessonDto[]> EditLessons(Guid replicaId, LessonEdit lesson);
-        Task DeleteLessons(Guid replicaId);
-        Task<LessonDto> EditSingle(Guid id, LessonEdit lesson);
+        /// <exception cref="KeyNotFoundException"></exception>
+        Task<Result<Guid[], Exception>> GetAttendingGroupsByReplica(Guid replicaId);
+        /// <exception cref="KeyNotFoundException"></exception>
+        Task<Result<Guid[], Exception>> GetAttendingGroups(Guid id);
+        /// <exception cref="KeyNotFoundException"></exception>
+        /// <exception cref="ArgumentException">When had collision</exception>
+        Task<Result<Lesson, Exception>> EditLessons(Guid replicaId, LessonEdit lesson);
+        /// <exception cref="KeyNotFoundException"></exception>
+        /// <exception cref="ArgumentException">When had collision</exception>
+        Task<Result<Lesson, Exception>> EditSingle(Guid id, LessonEdit lesson);
         Task DeleteSingle(Guid id);
+        Task DeleteLessons(Guid replicaId);
 
         Task<LessonDto> CreateLessons(LessonCreation lesson, DateOnly? beginDate,
                 DateOnly? endDate, uint repeatInterval=1);

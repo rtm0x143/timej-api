@@ -1,5 +1,7 @@
 using Mapster;
 using Microsoft.AspNetCore.Routing.Constraints;
+using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using TimejApi.Data.Dtos;
 using TimejApi.Data.Entities;
 
@@ -43,11 +45,13 @@ namespace TimejApi.Data.Mapping
 
             TypeAdapterConfig<Lesson, LessonDto>.NewConfig()
                 .Map(dest => dest.LessonNumber, src => src.LessonNumber)
-                .Map(dest => dest.Groups, src => src.AttendingGroups.Select(x => x.Group.Adapt<SubgroupDto>()));
+                .Map(dest => dest.Groups, 
+                    src => src.AttendingGroups.Select(x => 
+                        new SubgroupDto(x.GroupId, x.SubgroupNumber, x.Group != null ? x.Group!.GroupNumber : default)));
 
             TypeAdapterConfig<LessonGroup, SubgroupDto>.NewConfig()
                 .Map(dest => dest.GroupNumber, src => src.Group.GroupNumber)
-                .Map(dest=>dest.Id,src=>src.GroupId);
+                .Map(dest => dest.Id, src => src.GroupId);
 
         }
     }
