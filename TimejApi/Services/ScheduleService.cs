@@ -33,7 +33,7 @@ namespace TimejApi.Services
             foreach (var item in lessons)
             {
                 lesson.Adapt(item);
-                item.Date.AddDays(lesson.ShiftDays);
+                itemDate = item.Date.AddDays(lesson.ShiftDays);
                 if (await CheckCollisions(item))
                     return new(new ArgumentException($"The lesson tried to be moved to {item.Date} in {item.LessonNumber} timeslot has collisions"));
             }
@@ -42,7 +42,7 @@ namespace TimejApi.Services
             {
                 await _dbContext.SaveChangesAsync();
             }
-            catch (ReferenceConstraintException ex) 
+            catch (ReferenceConstraintException ex)
             {
                 return new(new ArgumentException($"Data in new lesson contains incorrect relations", ex));
             }
@@ -122,7 +122,7 @@ namespace TimejApi.Services
                 _logger.LogInformation($"Error updating lesson with ID {id}. The exception was caused by {e.Entries[0].Entity.GetType().Name}");
                 return new(new ArgumentException($"Data in new lesson contains incorrect relations", e));
             }
-            catch(Exception e) { return new(e); }
+            catch (Exception e) { return new(e); }
         }
 
         public async Task DeleteSingle(Guid id)
