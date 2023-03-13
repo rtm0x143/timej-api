@@ -33,7 +33,7 @@ namespace TimejApi.Services
             foreach (var item in lessons)
             {
                 lesson.Adapt(item);
-                itemDate = item.Date.AddDays(lesson.ShiftDays);
+                item.Date = item.Date.AddDays(lesson.ShiftDays);
                 if (await CheckCollisions(item))
                     return new(new ArgumentException($"The lesson tried to be moved to {item.Date} in {item.LessonNumber} timeslot has collisions"));
             }
